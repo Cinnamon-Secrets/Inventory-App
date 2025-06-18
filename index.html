@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Cinnamon Secrets Bakery Management</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div id="toast" class="toast">Saved successfully!</div>
+  <header>
+    <h1>Cinnamon Secrets 🍰</h1>
+  </header>
+  <nav>
+    <button id="nav-ingredients">Ingredients</button>
+    <button id="nav-recipes">Recipes</button>
+    <button id="nav-production">Production</button>
+    <button id="nav-dashboard">Dashboard</button>
+  </nav>
+  <main>
+    <!-- Ingredients Section -->
+    <section id="ingredients-section" class="section">
+      <h2>Ingredients 🥣</h2>
+      <form id="ingredient-form">
+        <input type="hidden" id="ingredient-id">
+        <label for="ingredient-name">Name:</label>
+        <input type="text" id="ingredient-name" required>
+        <label for="ingredient-price">Price per unit:</label>
+        <input type="number" id="ingredient-price" step="0.01" required>
+        <label for="ingredient-quantity">Quantity In Stock:</label>
+        <input type="number" id="ingredient-quantity" required>
+        <button type="submit">Save Ingredient</button>
+      </form>
+      <table id="ingredients-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- Recipes Section -->
+    <section id="recipes-section" class="section" style="display:none">
+      <h2>Recipes 🍪</h2>
+      <form id="menu-form">
+        <input type="hidden" id="menu-id">
+        <label for="menu-name">Item Name:</label>
+        <input type="text" id="menu-name" required>
+        <label for="menu-recipe">Recipe/Instructions:</label>
+        <textarea id="menu-recipe" required></textarea>
+        <div id="menu-ingredients-container">
+          <h3>Ingredients Required</h3>
+        </div>
+        <button type="button" id="add-menu-ingredient">Add Ingredient</button>
+        <label for="menu-price">Price You Charge:</label>
+        <input type="number" id="menu-price" step="0.01" required>
+        <p id="menu-cost-display">Cost to Make: $0.00</p>
+        <button type="submit">Save Recipe</button>
+      </form>
+      <table id="menu-table">
+        <thead>
+          <tr>
+            <th>Item Name</th>
+            <th>Ingredients</th>
+            <th>Recipe</th>
+            <th>Cost</th>
+            <th>Price</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- Production Section -->
+    <section id="production-section" class="section" style="display:none">
+      <h2>Production 🏭</h2>
+      <div id="menu-list"></div>
+      <div id="production-details" style="display:none">
+        <h3>Production Details</h3>
+        <p id="production-info"></p>
+        <button id="confirm-production">Confirm Production</button>
+        <button id="back-to-production">Back</button>
+      </div>
+    </section>
+
+    <!-- Dashboard Section -->
+    <section id="dashboard-section" class="section" style="display:none">
+      <h2>Dashboard 📊</h2>
+      <canvas id="ingredient-chart"></canvas>
+      <canvas id="recipe-chart"></canvas>
+      <canvas id="money-chart"></canvas>
+      <div style="margin: 20px 0;">
+        <button id="export-data">Export Data</button>
+        <input type="file" id="import-file" style="display:none" accept=".json"/>
+        <button id="import-data">Import Data</button>
+        <button id="reset-data" style="margin-top:20px;background:#ff4080;">Reset All Data</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal for production quantity input -->
+  <div id="quantity-modal" class="modal" style="display:none">
+    <div class="modal-content">
+      <span id="close-modal" class="close">&times;</span>
+      <h2>Enter Quantity to Produce</h2>
+      <input type="number" id="production-quantity" min="1" required>
+      <button id="calculate-production">Calculate</button>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="renderer.js"></script>
+  <script src="charts.js"></script>
+</body>
+</html>
