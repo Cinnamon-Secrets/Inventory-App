@@ -42,10 +42,10 @@ document.getElementById('nav-recipes').addEventListener('click', () => {
   showSection('recipes-section');
   renderMenuItems();
 });
-document.getElementById('nav-production').addEventListener('click', () => {
-  showSection('production-section');
-  renderMenuList();
-});
+// document.getElementById('nav-production').addEventListener('click', () => {
+//   showSection('production-section');
+//   renderMenuList();
+// });
 document.getElementById('nav-dashboard').addEventListener('click', () => {
   showSection('dashboard-section');
   updateCharts();
@@ -324,105 +324,105 @@ function addMenuIngredientRow(selectedId = '', qty = 1) {
 }
 
 // PRODUCTION FUNCTIONALITY
-function renderMenuList() {
-  const menuListDiv = document.getElementById('menu-list');
-  menuListDiv.innerHTML = '';
-  window.data.menuItems.forEach(item => {
-    const div = document.createElement('div');
-    div.className = "menu-item";
-    div.textContent = item.name;
-    div.onclick = () => {
-      openQuantityModal(item);
-    };
-    menuListDiv.appendChild(div);
-  });
-}
+// function renderMenuList() {
+//   const menuListDiv = document.getElementById('menu-list');
+//   menuListDiv.innerHTML = '';
+//   window.data.menuItems.forEach(item => {
+//     const div = document.createElement('div');
+//     div.className = "menu-item";
+//     div.textContent = item.name;
+//     div.onclick = () => {
+//       openQuantityModal(item);
+//     };
+//     menuListDiv.appendChild(div);
+//   });
+// }
 
-function openQuantityModal(menuItem) {
-  document.getElementById('quantity-modal').style.display = 'flex';
-  document.getElementById('production-quantity').value = '';
+// function openQuantityModal(menuItem) {
+//   document.getElementById('quantity-modal').style.display = 'flex';
+//   document.getElementById('production-quantity').value = '';
 
-  document.getElementById('calculate-production').onclick = function() {
-    const qty = parseInt(document.getElementById('production-quantity').value);
-    if (!qty || qty < 1) {
-      alert("Please enter a valid quantity.");
-      return;
-    }
-    closeModal();
-    calculateProduction(menuItem, qty);
-  };
-}
+//   document.getElementById('calculate-production').onclick = function() {
+//     const qty = parseInt(document.getElementById('production-quantity').value);
+//     if (!qty || qty < 1) {
+//       alert("Please enter a valid quantity.");
+//       return;
+//     }
+//     closeModal();
+//     calculateProduction(menuItem, qty);
+//   };
+// }
 
-function closeModal() {
-  document.getElementById('quantity-modal').style.display = 'none';
-  document.getElementById('production-quantity').value = '';
-}
+// function closeModal() {
+//   document.getElementById('quantity-modal').style.display = 'none';
+//   document.getElementById('production-quantity').value = '';
+// }
 
-document.getElementById('close-modal').addEventListener('click', closeModal);
-document.getElementById('back-to-production').addEventListener('click', () => {
-  document.getElementById('production-details').style.display = 'none';
-  document.getElementById('menu-list').style.display = 'flex';
-});
+// document.getElementById('close-modal').addEventListener('click', closeModal);
+// document.getElementById('back-to-production').addEventListener('click', () => {
+//   document.getElementById('production-details').style.display = 'none';
+//   document.getElementById('menu-list').style.display = 'flex';
+// });
 
 let currentProduction = null;
 
-function calculateProduction(menuItem, qty) {
-  let details = `To produce ${qty} of ${menuItem.name}, you will need:<br/>`;
-  let shortages = [];
-  let canProduce = true;
+// function calculateProduction(menuItem, qty) {
+//   let details = `To produce ${qty} of ${menuItem.name}, you will need:<br/>`;
+//   let shortages = [];
+//   let canProduce = true;
 
-  menuItem.ingredientsRequired.forEach(ir => {
-    const ingredient = window.data.ingredients.find(i => i.id === ir.ingredientId);
-    if (ingredient) {
-      const required = ir.quantity * qty;
-      const shortageAmount = required - ingredient.quantity;
-      if (shortageAmount > 0) {
-        shortages.push(`${ingredient.name}: Need ${shortageAmount} more`);
-        canProduce = false;
-      }
-      details += `${ingredient.name}: ${required} ${shortageAmount > 0 ? "(Low Stock!)" : ""}<br/>`;
-    }
-  });
+//   menuItem.ingredientsRequired.forEach(ir => {
+//     const ingredient = window.data.ingredients.find(i => i.id === ir.ingredientId);
+//     if (ingredient) {
+//       const required = ir.quantity * qty;
+//       const shortageAmount = required - ingredient.quantity;
+//       if (shortageAmount > 0) {
+//         shortages.push(`${ingredient.name}: Need ${shortageAmount} more`);
+//         canProduce = false;
+//       }
+//       details += `${ingredient.name}: ${required} ${shortageAmount > 0 ? "(Low Stock!)" : ""}<br/>`;
+//     }
+//   });
 
-  if (shortages.length > 0) {
-    details += `<br><strong>Shortages:</strong><br>${shortages.join("<br>")}`;
-  }
+//   if (shortages.length > 0) {
+//     details += `<br><strong>Shortages:</strong><br>${shortages.join("<br>")}`;
+//   }
 
-  document.getElementById('production-info').innerHTML = details;
-  document.getElementById('production-details').style.display = 'block';
-  document.getElementById('menu-list').style.display = 'none';
+//   document.getElementById('production-info').innerHTML = details;
+//   document.getElementById('production-details').style.display = 'block';
+//   document.getElementById('menu-list').style.display = 'none';
 
-  currentProduction = { menuItem, qty, canProduce };
-}
+//   currentProduction = { menuItem, qty, canProduce };
+// }
 
-document.getElementById('confirm-production').onclick = function() {
-  if (!currentProduction || !currentProduction.canProduce) {
-    alert("Cannot produce due to ingredient shortages.");
-    return;
-  }
-  currentProduction.menuItem.ingredientsRequired.forEach(ir => {
-    const ingredient = window.data.ingredients.find(i => i.id === ir.ingredientId);
-    if (ingredient) {
-      ingredient.quantity -= ir.quantity * currentProduction.qty;
-    }
-  });
-  const totalCost = (currentProduction.menuItem.cost || 0) * currentProduction.qty;
-  const totalRevenue = (currentProduction.menuItem.price || 0) * currentProduction.qty;
-  window.data.productionHistory.push({
-    recipeName: currentProduction.menuItem.name,
-    quantity: currentProduction.qty,
-    totalCost,
-    totalRevenue,
-    date: new Date().toISOString()
-  });
-  saveData();
-  renderIngredients();
-  updateCharts();
-  document.getElementById('production-details').style.display = 'none';
-  document.getElementById('menu-list').style.display = 'flex';
-  currentProduction = null;
-  showToast("Production confirmed! Ingredient levels updated.");
-};
+// document.getElementById('confirm-production').onclick = function() {
+//   if (!currentProduction || !currentProduction.canProduce) {
+//     alert("Cannot produce due to ingredient shortages.");
+//     return;
+//   }
+//   currentProduction.menuItem.ingredientsRequired.forEach(ir => {
+//     const ingredient = window.data.ingredients.find(i => i.id === ir.ingredientId);
+//     if (ingredient) {
+//       ingredient.quantity -= ir.quantity * currentProduction.qty;
+//     }
+//   });
+//   const totalCost = (currentProduction.menuItem.cost || 0) * currentProduction.qty;
+//   const totalRevenue = (currentProduction.menuItem.price || 0) * currentProduction.qty;
+//   window.data.productionHistory.push({
+//     recipeName: currentProduction.menuItem.name,
+//     quantity: currentProduction.qty,
+//     totalCost,
+//     totalRevenue,
+//     date: new Date().toISOString()
+//   });
+//   saveData();
+//   renderIngredients();
+//   updateCharts();
+//   document.getElementById('production-details').style.display = 'none';
+//   document.getElementById('menu-list').style.display = 'flex';
+//   currentProduction = null;
+//   showToast("Production confirmed! Ingredient levels updated.");
+// };
 
 function showLowStockAlert() {
   const lowStock = window.data.ingredients.filter(i => i.quantity < 4);
@@ -447,7 +447,7 @@ window.onload = function() {
   window.loadData();
   renderIngredients();
   renderMenuItems();
-  renderMenuList();
+  // renderMenuList();
   updateCharts();
   if (!localStorage.getItem('cinnamonSecretsWelcomed')) {
     showToast("Welcome to Cinnamon Secrets Bakery Manager! 🎉");
@@ -474,7 +474,7 @@ window.deleteIngredient = function(id) {
     saveData();
     renderIngredients();
     renderMenuItems();
-    renderMenuList();
+    // renderMenuList();
     showToast("Ingredient deleted!");
   }
 };
@@ -484,7 +484,7 @@ window.deleteMenuItem = function(id) {
     window.data.menuItems = window.data.menuItems.filter(m => m.id !== id);
     saveData();
     renderMenuItems();
-    renderMenuList();
+    // renderMenuList();
     showToast("Recipe deleted!");
   }
 };
@@ -821,7 +821,7 @@ document.getElementById('import-file').onchange = function(e) {
         saveData();
         renderIngredients();
         renderMenuItems();
-        renderMenuList();
+        // renderMenuList();
         updateCharts();
         showToast("Data imported!");
       } else {
@@ -834,13 +834,13 @@ document.getElementById('import-file').onchange = function(e) {
   reader.readAsText(file);
 };
 
-document.addEventListener('keydown', function(e) {
-  if (e.key === "Escape") closeModal();
-});
+// document.addEventListener('keydown', function(e) {
+//   if (e.key === "Escape") closeModal();
+// });
 
-document.getElementById('quantity-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
+// document.getElementById('quantity-modal').addEventListener('click', function(e) {
+//   if (e.target === this) closeModal();
+// });
 
 document.getElementById('reset-data').onclick = function() {
   // Show a prompt for what to keep
@@ -859,7 +859,7 @@ document.getElementById('reset-data').onclick = function() {
   saveData();
   renderIngredients();
   renderMenuItems();
-  renderMenuList();
+  // renderMenuList();
   renderCustomers();
   updateCharts();
   showToast("Data reset!");
