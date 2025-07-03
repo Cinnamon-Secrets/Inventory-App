@@ -1,31 +1,30 @@
-// Global data store
-// let data = {
-//   ingredients: [],
-//   menuItems: [],
-//   productionHistory: []
-// };
+// --- DOM SAFE GETTER ---
+function getById(id) {
+  const el = document.getElementById(id);
+  if (!el) {
+    console.error(`Element with id '${id}' not found!`);
+  }
+  return el;
+}
 
-// function loadData() {
-//   const localData = localStorage.getItem('cinnamonSecretsData');
-//   if (localData) {
-//       data = JSON.parse(localData);
-//   }
-// }
+// --- SECTION SHOW/HIDE ---
+function showSection(sectionId) {
+  document.querySelectorAll('.section').forEach(sec => {
+    sec.style.display = (sec.id === sectionId) ? '' : 'none';
+  });
+}
 
-// Function to show toast notification
+// --- TOAST ---
 function showToast(message = "Saved successfully!") {
-  const toast = document.getElementById('toast');
+  const toast = getById('toast');
+  if (!toast) return;
   toast.textContent = message;
   toast.style.display = 'block';
   toast.style.opacity = '1';
   if (toast._timeout) clearTimeout(toast._timeout);
   toast._timeout = setTimeout(() => {
-    toast.style.transition = 'opacity 0.5s';
     toast.style.opacity = '0';
-    setTimeout(() => {
-      toast.style.display = 'none';
-      toast.style.transition = '';
-    }, 500);
+    setTimeout(() => { toast.style.display = 'none'; }, 500);
   }, 3000);
 }
 
@@ -33,77 +32,55 @@ function saveData() {
   localStorage.setItem('cinnamonSecretsData', JSON.stringify(window.data));
 }
 
-// Navigation handling
-document.getElementById('nav-ingredients').addEventListener('click', () => {
-  showSection('ingredients-section');
-  renderIngredients();
-});
-document.getElementById('nav-recipes').addEventListener('click', () => {
-  showSection('recipes-section');
-  renderMenuItems();
-});
-document.getElementById('nav-production').addEventListener('click', () => {
-  showSection('production-section');
-  renderMenuList();
-});
-document.getElementById('nav-dashboard').addEventListener('click', () => {
-  showSection('dashboard-section');
-  updateCharts();
-});
-document.getElementById('nav-orders').addEventListener('click', () => {
-  showSection('orders-section');
-  document.getElementById('order-search').value = '';
-  document.getElementById('order-status-filter').value = '';
-  renderOrders();
-  populateOrderCustomer();
-  const container = document.getElementById('order-items-container');
-  container.innerHTML = '';
-  addOrderItemRow();
-});
-// document.getElementById('nav-staff').addEventListener('click', () => {
-//   showSection('staff-section');
-//   renderStaff();
-// });
-document.getElementById('nav-customers').addEventListener('click', () => {
-  showSection('customers-section');
-  renderCustomers();
-});
-
-function showSection(sectionId) {
-  document.querySelectorAll('.section').forEach(sec => {
-    sec.style.display = sec.id === sectionId ? 'block' : 'none';
+// --- NAVIGATION ---
+function setupNavigation() {
+  const navMap = [
+    ['nav-ingredients', 'ingredients-section', renderIngredients],
+    ['nav-recipes', 'recipes-section', renderMenuItems],
+    ['nav-production', 'production-section', renderUnproducedOrders],
+    ['nav-dashboard', 'dashboard-section', updateCharts],
+    ['nav-orders', 'orders-section', renderOrders],
+    ['nav-customers', 'customers-section', renderCustomers],
+    ['nav-calendar', 'calendar-section', renderCalendarView]
+  ];
+  navMap.forEach(([btnId, sectionId, cb]) => {
+    const btn = document.getElementById(btnId);
+    if (btn) {
+      btn.onclick = function() {
+        showSection(sectionId);
+        if (typeof cb === 'function') cb();
+      };
+    }
   });
 }
 
-// INGREDIENTS MANAGEMENT
-document.getElementById('ingredient-form').addEventListener('submit', function(e) {
-  e.preventDefault();
-  let id = document.getElementById('ingredient-id').value;
-  let name = document.getElementById('ingredient-name').value;
-  let price = parseFloat(document.getElementById('ingredient-price').value);
-  let quantity = parseInt(document.getElementById('ingredient-quantity').value);
+// --- DATE HELPERS ---
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  // Always treat as local date (no timezone shift)
+  const [year, month, day] = dateStr.split('-');
+  return new Date(Number(year), Number(month) - 1, Number(day)).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+function getMinPickupDateStr() {
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  now.setDate(now.getDate() + 2); // 48 hours from now
+  return now.toISOString().slice(0,10);
+}
 
-  if (id) {
-    window.data.ingredients = window.data.ingredients.map(ing =>
-      ing.id === id ? { id, name, price, quantity } : ing
-    );
-  } else {
-    id = Date.now().toString();
-    window.data.ingredients.push({ id, name, price, quantity });
-  }
-  saveData();
-  renderIngredients();
-  this.reset();
-  document.getElementById('ingredient-id').value = '';
-  showToast();
-});
-
+// --- INGREDIENTS ---
 function renderIngredients() {
-  const tbody = document.getElementById('ingredients-table').getElementsByTagName('tbody')[0];
+  const table = getById('ingredients-table');
+  if (!table) return;
+  let tbody = table.getElementsByTagName('tbody')[0];
+  if (!tbody) {
+    tbody = document.createElement('tbody');
+    table.appendChild(tbody);
+  }
   tbody.innerHTML = '';
   if (!window.data.ingredients.length) {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td colspan="4" style="text-align:center;color:#aaa;">No ingredients yet. Add one above!</td>`;
+    tr.innerHTML = `<td colspan="5" style="text-align:center;color:#aaa;">No ingredients yet. Add one above!</td>`;
     tbody.appendChild(tr);
     return;
   }
@@ -111,12 +88,9 @@ function renderIngredients() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${ing.name}</td>
-      <td contenteditable="true" onblur="updateIngredientPrice('${ing.id}', this.textContent)">${ing.price.toFixed(2)}</td>
-      <td>
-        <button onclick="changeIngredientQty('${ing.id}', -1)">–</button>
-        <span style="margin:0 8px;" contenteditable="true" onblur="updateIngredientQty('${ing.id}', this.textContent)">${ing.quantity}</span>
-        <button onclick="changeIngredientQty('${ing.id}', 1)">+</button>
-      </td>
+      <td>${ing.unit || ''}</td>
+      <td>${ing.price.toFixed(2)}</td>
+      <td>${ing.quantity}</td>
       <td>
         <button type="button" onclick="editIngredient('${ing.id}')">Edit</button>
         <button type="button" onclick="deleteIngredient('${ing.id}')">Delete</button>
@@ -126,6 +100,29 @@ function renderIngredients() {
     tbody.appendChild(tr);
   });
 }
+
+document.getElementById('ingredient-modal-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  let id = document.getElementById('ingredient-id').value;
+  let name = document.getElementById('ingredient-name').value;
+  let price = parseFloat(document.getElementById('ingredient-price').value);
+  let quantity = parseInt(document.getElementById('ingredient-quantity').value);
+  let unit = document.getElementById('ingredient-unit') ? document.getElementById('ingredient-unit').value : '';
+  if (id) {
+    window.data.ingredients = window.data.ingredients.map(ing =>
+      ing.id === id ? { id, name, price, quantity, unit } : ing
+    );
+  } else {
+    id = Date.now().toString();
+    window.data.ingredients.push({ id, name, price, quantity, unit });
+  }
+  saveData();
+  renderIngredients();
+  this.reset();
+  document.getElementById('ingredient-id').value = '';
+  hideModal('ingredient-modal');
+  showToast();
+});
 
 window.changeIngredientQty = function(id, delta) {
   const ing = window.data.ingredients.find(i => i.id === id);
@@ -190,9 +187,15 @@ document.getElementById('restock-confirm').onclick = function() {
   restockIngredientId = null;
 };
 
-// MENU MANAGEMENT (Recipes)
+// --- MENU MANAGEMENT (RECIPES) ---
 function renderMenuItems() {
-  const tbody = document.getElementById('menu-table').getElementsByTagName('tbody')[0];
+  const table = getById('menu-table');
+  if (!table) return;
+  let tbody = table.getElementsByTagName('tbody')[0];
+  if (!tbody) {
+    tbody = document.createElement('tbody');
+    table.appendChild(tbody);
+  }
   tbody.innerHTML = '';
   if (!window.data.menuItems.length) {
     const tr = document.createElement('tr');
@@ -211,7 +214,7 @@ function renderMenuItems() {
     tr.innerHTML = `
       <td>${item.name}</td>
       <td>${ingList}</td>
-      <td>${item.recipe}</td>
+      <td>${item.instructions}</td>
       <td>${item.cost ? item.cost.toFixed(2) : "0.00"}</td>
       <td>${item.price ? item.price.toFixed(2) : "0.00"}</td>
       <td>
@@ -226,28 +229,28 @@ function renderMenuItems() {
 window.editMenuItem = function(id) {
   const item = window.data.menuItems.find(m => m.id === id);
   if (item) {
-    document.getElementById('menu-id').value = item.id;
-    document.getElementById('menu-name').value = item.name;
-    document.getElementById('menu-recipe').value = item.recipe;
-    document.getElementById('menu-price').value = item.price;
-    document.getElementById('menu-cost-display').textContent = `Cost to Make: $${item.cost ? item.cost.toFixed(2) : "0.00"}`;
-    document.getElementById('menu-ingredients-container').innerHTML = '<h3>Ingredients Required</h3>';
+    document.getElementById('recipe-modal-id').value = item.id;
+    document.getElementById('recipe-modal-name').value = item.name;
+    document.getElementById('recipe-modal-instructions').value = item.instructions;
+    document.getElementById('recipe-modal-price').value = item.price;
+    document.getElementById('recipe-modal-cost-display').textContent = `Cost to Make: $${item.cost ? item.cost.toFixed(2) : "0.00"}`;
+    document.getElementById('recipe-modal-ingredients-container').innerHTML = '<h3>Ingredients Required</h3>';
     item.ingredientsRequired.forEach(ir => {
-      addMenuIngredientRow(ir.ingredientId, ir.quantity);
+      addRecipeIngredientRow(ir.ingredientId, ir.quantity);
     });
-    updateMenuCostPreview();
+    updateRecipeCostPreview();
   }
 };
 
-document.getElementById('menu-form').addEventListener('submit', function(e) {
+document.getElementById('recipe-modal-form').addEventListener('submit', function(e) {
   e.preventDefault();
-  let id = document.getElementById('menu-id').value;
-  let name = document.getElementById('menu-name').value;
-  let recipe = document.getElementById('menu-recipe').value;
-  let price = parseFloat(document.getElementById('menu-price').value);
+  let id = document.getElementById('recipe-modal-id').value;
+  let name = document.getElementById('recipe-modal-name').value;
+  let instructions = document.getElementById('recipe-modal-instructions').value;
+  let price = parseFloat(document.getElementById('recipe-modal-price').value);
 
   let ingredientsRequired = [];
-  document.querySelectorAll('.menu-ingredient-row').forEach(row => {
+  document.querySelectorAll('.recipe-ingredient-row').forEach(row => {
     const select = row.querySelector('select');
     const qtyInput = row.querySelector('input[type="number"]');
     ingredientsRequired.push({ ingredientId: select.value, quantity: parseInt(qtyInput.value) });
@@ -258,33 +261,33 @@ document.getElementById('menu-form').addEventListener('submit', function(e) {
     return ingredient ? total + (ingredient.price * ir.quantity) : total;
   }, 0);
 
-  document.getElementById('menu-cost-display').textContent = `Cost to Make: $${cost.toFixed(2)}`;
+  document.getElementById('recipe-modal-cost-display').textContent = `Cost to Make: $${cost.toFixed(2)}`;
 
   if (id) {
     window.data.menuItems = window.data.menuItems.map(item =>
-      item.id === id ? { id, name, recipe, ingredientsRequired, cost, price } : item
+      item.id === id ? { id, name, instructions, ingredientsRequired, cost, price } : item
     );
   } else {
     id = Date.now().toString();
-    window.data.menuItems.push({ id, name, recipe, ingredientsRequired, cost, price });
+    window.data.menuItems.push({ id, name, instructions, ingredientsRequired, cost, price });
   }
   saveData();
   renderMenuItems();
   this.reset();
-  document.getElementById('menu-id').value = '';
-  document.getElementById('menu-ingredients-container').innerHTML = '<h3>Ingredients Required</h3>';
-  document.getElementById('menu-cost-display').textContent = 'Cost to Make: $0.00';
+  document.getElementById('recipe-modal-id').value = '';
+  document.getElementById('recipe-modal-ingredients-container').innerHTML = '<h3>Ingredients Required</h3>';
+  document.getElementById('recipe-modal-cost-display').textContent = 'Cost to Make: $0.00';
   showToast();
 });
 
-document.getElementById('add-menu-ingredient').addEventListener('click', function() {
-  addMenuIngredientRow();
+document.getElementById('add-recipe-modal-ingredient').addEventListener('click', function() {
+  addRecipeIngredientRow();
 });
 
-function addMenuIngredientRow(selectedId = '', qty = 1) {
-  const container = document.getElementById('menu-ingredients-container');
+function addRecipeIngredientRow(selectedId = '', qty = 1) {
+  const container = document.getElementById('recipe-modal-ingredients-container');
   const row = document.createElement('div');
-  row.className = 'menu-ingredient-row';
+  row.className = 'recipe-ingredient-row';
 
   const select = document.createElement('select');
   select.required = true;
@@ -307,12 +310,12 @@ function addMenuIngredientRow(selectedId = '', qty = 1) {
   removeBtn.textContent = 'Remove';
   removeBtn.onclick = () => {
     row.remove();
-    updateMenuCostPreview();
+    updateRecipeCostPreview();
   };
 
   // Update cost preview on change
-  select.addEventListener('change', updateMenuCostPreview);
-  input.addEventListener('input', updateMenuCostPreview);
+  select.addEventListener('change', updateRecipeCostPreview);
+  input.addEventListener('input', updateRecipeCostPreview);
 
   row.appendChild(select);
   row.appendChild(input);
@@ -320,180 +323,674 @@ function addMenuIngredientRow(selectedId = '', qty = 1) {
 
   container.appendChild(row);
 
-  updateMenuCostPreview();
+  updateRecipeCostPreview();
 }
 
-// PRODUCTION FUNCTIONALITY
-function renderMenuList() {
-  const menuListDiv = document.getElementById('menu-list');
-  menuListDiv.innerHTML = '';
-  window.data.menuItems.forEach(item => {
-    const div = document.createElement('div');
-    div.className = "menu-item";
-    div.textContent = item.name;
-    div.onclick = () => {
-      openQuantityModal(item);
+// --- RECIPE COST PREVIEW ---
+function updateRecipeCostPreview() {
+  let cost = 0;
+  document.querySelectorAll('.recipe-ingredient-row').forEach(row => {
+    const select = row.querySelector('select');
+    const qtyInput = row.querySelector('input[type="number"]');
+    const ingredient = window.data.ingredients.find(i => i.id === select.value);
+    if (ingredient && !isNaN(parseFloat(qtyInput.value))) {
+      cost += ingredient.price * parseFloat(qtyInput.value);
+    }
+  });
+  const costDisplay = document.getElementById('recipe-modal-cost-display');
+  if (costDisplay) costDisplay.textContent = `Cost to Make: $${cost.toFixed(2)}`;
+}
+
+// --- MENU ITEM MODAL FORM RENDER ---
+function renderMenuItemModalForm(item = {}) {
+  const form = getById('menu-item-modal-form');
+  if (!form) return;
+  form.innerHTML = `
+    <input type="hidden" id="menu-item-id" value="${item.id || ''}">
+    <label>Name:<input type="text" id="menu-item-name" value="${item.name || ''}" required></label><br>
+    <label>Price:<input type="number" id="menu-item-price" value="${item.price != null ? item.price : ''}" min="0" step="0.01" required></label><br>
+    <label>Ingredients:</label>
+    <div id="menu-item-ingredients-container">
+      <h3>Ingredients Required</h3>
+    </div>
+    <button type="button" id="add-menu-item-ingredient">Add Ingredient</button><br>
+    <label>Instructions:<textarea id="menu-item-instructions" required>${item.instructions || ''}</textarea></label><br>
+    <button type="submit">Save</button>
+  `;
+  // Re-add ingredient rows if editing
+  if (item.ingredientsRequired) {
+    item.ingredientsRequired.forEach(ir => {
+      addMenuItemIngredientRow(ir.ingredientId, ir.quantity);
+    });
+  }
+}
+
+// --- ORDER FORM RENDER & HANDLING ---
+function renderOrderForm() {
+  const form = getById('order-form');
+  if (!form) return;
+  let customers = window.data.customers || [];
+  const minPickup = getMinPickupDateStr();
+  form.innerHTML = `
+    <label>Customer:
+      <select id="order-customer-select" required>
+        <option value="">Select Customer</option>
+        ${customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+        <option value="new">New Customer / Walk-in</option>
+      </select>
+      <input type="text" id="order-customer-name" placeholder="Enter name or leave blank for Walk-in" style="display:none;margin-top:5px;">
+    </label><br>
+    <label>Pickup Date:
+      <input type="date" id="order-pickup-date" min="${minPickup}" required>
+      <span style="font-size:0.9em;color:#888;">(Must be at least 48 hours from now)</span>
+    </label><br>
+    <div id="order-items-container"></div>
+    <button type="button" id="add-order-item">Add Another Item</button>
+    <button type="submit">Add Order</button>
+  `;
+
+  // Attach customer select logic
+  const select = getById('order-customer-select');
+  const nameInput = getById('order-customer-name');
+  if (select && nameInput) {
+    select.onchange = function() {
+      nameInput.style.display = (select.value === 'new') ? '' : 'none';
     };
-    menuListDiv.appendChild(div);
+  }
+
+  // Set default pickup date to min
+  const pickupInput = getById('order-pickup-date');
+  if (pickupInput) pickupInput.value = minPickup;
+
+  // Render first item row
+  addOrderItemRow();
+
+  // Attach add item button
+  getById('add-order-item').onclick = addOrderItemRow;
+
+  // Attach form submit
+  form.onsubmit = handleOrderFormSubmit;
+}
+
+// Helper to add an item row
+function addOrderItemRow(selectedId = '', qty = 1) {
+  const container = getById('order-items-container');
+  if (!container) return;
+  const row = document.createElement('div');
+  row.className = 'order-item-row';
+  // Menu items dropdown
+  const select = document.createElement('select');
+  select.required = true;
+  select.innerHTML = `<option value="">Select Item</option>` +
+    (window.data.menuItems || []).map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+  if (selectedId) select.value = selectedId;
+  // Quantity input
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.min = 1;
+  input.value = qty;
+  input.required = true;
+  input.style = 'width:60px;display:inline-block;margin-left:8px;';
+  // Remove button
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.textContent = 'Remove';
+  removeBtn.style = 'margin-left:8px;';
+  removeBtn.onclick = () => row.remove();
+  // Append
+  row.appendChild(select);
+  row.appendChild(input);
+  row.appendChild(removeBtn);
+  container.appendChild(row);
+}
+
+// Handle order form submit
+function handleOrderFormSubmit(e) {
+  e.preventDefault();
+  const select = getById('order-customer-select');
+  const nameInput = getById('order-customer-name');
+  const pickupInput = getById('order-pickup-date');
+  let customerId = '';
+  let customerName = '';
+  if (select) {
+    if (select.value === 'new') {
+      customerName = nameInput.value.trim() || 'Walk-in';
+    } else {
+      customerId = select.value;
+      const custObj = (window.data.customers || []).find(c => c.id === customerId);
+      customerName = custObj ? custObj.name : '';
+    }
+  }
+  // Validate pickup date
+  let pickupDate = pickupInput ? pickupInput.value : '';
+  if (!pickupDate) {
+    showToast('Please select a pickup date.');
+    return;
+  }
+  const minPickup = getMinPickupDateStr();
+  if (pickupDate < minPickup) {
+    showToast('Pickup date must be at least 48 hours from now.');
+    return;
+  }
+  // Gather items
+  const items = [];
+  document.querySelectorAll('.order-item-row').forEach(row => {
+    const itemSelect = row.querySelector('select');
+    const qtyInput = row.querySelector('input[type="number"]');
+    if (itemSelect && qtyInput && itemSelect.value && parseInt(qtyInput.value) > 0) {
+      items.push({ itemId: itemSelect.value, qty: parseInt(qtyInput.value) });
+    }
+  });
+  if (!customerName || !items.length) return;
+  window.data.orders.push({
+    id: Date.now().toString(),
+    customerId,
+    customerName,
+    items,
+    date: new Date().toISOString().slice(0,10),
+    pickupDate,
+    produced: false,
+    status: 'Pending'
+  });
+  saveData();
+  renderOrders();
+  showToast('Order added!');
+  renderOrderForm(); // Reset form
+}
+
+// --- PATCH renderOrders TO CALL renderOrderForm ---
+function renderOrders(searchTerm = '', statusFilter = '') {
+  renderOrderForm();
+  const table = getById('orders-table');
+  if (!table) return;
+  const tbody = table.getElementsByTagName('tbody')[0];
+  tbody.innerHTML = '';
+  let orders = window.data.orders;
+  if (statusFilter) {
+    orders = orders.filter(order => order.status === statusFilter);
+  }
+  if (searchTerm && searchTerm.trim()) {
+    const term = searchTerm.trim().toLowerCase();
+    orders = orders.filter(order => {
+      const customer = order.customerName || (window.data.customers.find(c => c.id === order.customerId)?.name) || '';
+      const itemsStr = (order.items || []).map(oi => {
+        const item = window.data.menuItems.find(m => m.id === oi.itemId);
+        return item ? item.name : '';
+      }).join(' ');
+      return customer.toLowerCase().includes(term) || itemsStr.toLowerCase().includes(term) || (order.pickupDate || '').toLowerCase().includes(term);
+    });
+  }
+  if (!orders.length) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="9" style="text-align:center;color:#aaa;">No orders found.</td>`;
+    tbody.appendChild(tr);
+    return;
+  }
+  orders.forEach(order => {
+    const customer = order.customerName || (window.data.customers.find(c => c.id === order.customerId)?.name) || 'Unknown';
+    const itemsStr = (order.items || []).map(oi => {
+      const item = window.data.menuItems.find(m => m.id === oi.itemId);
+      return `${item ? item.name : 'Unknown'} x${oi.qty}`;
+    }).join('<br>');
+    const total = (order.items || []).reduce((sum, oi) => {
+      const item = window.data.menuItems.find(m => m.id === oi.itemId);
+      return sum + ((item?.price || 0) * oi.qty);
+    }, 0);
+    const produced = order.produced ? '✅' : '❌';
+    const date = order.date || '';
+    const pickup = order.pickupDate ? formatDate(order.pickupDate) : '';
+    const canFulfill = order.status === 'Produced';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${date}</td>
+      <td>${customer}</td>
+      <td>${itemsStr}</td>
+      <td>${order.items.reduce((sum, oi) => sum + oi.qty, 0)}</td>
+      <td>$${total.toFixed(2)}</td>
+      <td>${order.status}</td>
+      <td>${produced}</td>
+      <td>${pickup}</td>
+      <td>
+        <button type="button" onclick="editOrder('${order.id}')">Edit</button>
+        ${canFulfill ? `<button type="button" onclick="fulfillOrder('${order.id}')">Fulfill</button>` : ''}
+        <button type="button" onclick="deleteOrder('${order.id}')">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
   });
 }
 
-function openQuantityModal(menuItem) {
-  document.getElementById('quantity-modal').style.display = 'flex';
-  document.getElementById('production-quantity').value = '';
+// --- ORDERS: SEARCH & FILTER ---
+document.getElementById('order-search').addEventListener('input', function() {
+  renderOrders(this.value, document.getElementById('order-status-filter').value);
+});
+document.getElementById('order-status-filter').addEventListener('change', function() {
+  renderOrders(document.getElementById('order-search').value, this.value);
+});
 
-  document.getElementById('calculate-production').onclick = function() {
-    const qty = parseInt(document.getElementById('production-quantity').value);
-    if (!qty || qty < 1) {
-      alert("Please enter a valid quantity.");
-      return;
+// --- ORDERS: FULFILL & DELETE ---
+window.fulfillOrder = function(orderId) {
+  const order = window.data.orders.find(o => o.id === orderId);
+  if (!order) return;
+  order.status = 'Fulfilled';
+  order.produced = true;
+  saveData();
+  renderOrders();
+  showToast("Order fulfilled!");
+};
+
+window.deleteOrder = function(orderId) {
+  showConfirm('Delete this order?', () => {
+    window.data.orders = window.data.orders.filter(o => o.id !== orderId);
+    saveData();
+    renderOrders();
+    showToast('Order deleted!');
+  });
+};
+
+// --- CUSTOMERS: SEARCH & FILTER ---
+document.getElementById('customer-search').addEventListener('input', function() {
+  renderCustomers(this.value);
+});
+function renderCustomers(searchTerm = '') {
+  const table = getById('customers-table');
+  if (!table) return;
+  const tbody = table.getElementsByTagName('tbody')[0];
+  tbody.innerHTML = '';
+  let customers = window.data.customers;
+  if (searchTerm && searchTerm.trim()) {
+    const term = searchTerm.trim().toLowerCase();
+    customers = customers.filter(c =>
+      (c.name && c.name.toLowerCase().includes(term)) ||
+      (c.phone && c.phone.toLowerCase().includes(term)) ||
+      (c.email && c.email.toLowerCase().includes(term))
+    );
+  }
+  if (!customers.length) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="4" style="text-align:center;color:#aaa;">No customers found.</td>`;
+    tbody.appendChild(tr);
+    return;
+  }
+  customers.forEach(c => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${c.name}</td>
+      <td>${c.phone || ''}</td>
+      <td>${c.email || ''}</td>
+      <td>
+        <button type="button" onclick="editCustomer('${c.id}')">Edit</button>
+        <button type="button" onclick="deleteCustomer('${c.id}')">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// --- PRODUCTION: UNPRODUCED ORDERS WORKFLOW ---
+function renderUnproducedOrders() {
+  const list = document.getElementById('unproduced-orders-list');
+  list.innerHTML = '';
+  const unproduced = window.data.orders.filter(o => !o.produced && o.status === 'Pending');
+  if (!unproduced.length) {
+    list.innerHTML = '<div style="color:#aaa;text-align:center;">No unproduced orders.</div>';
+    return;
+  }
+  unproduced.forEach(order => {
+    const div = document.createElement('div');
+    div.className = 'menu-item';
+    const customer = order.customerName || (window.data.customers.find(c => c.id === order.customerId)?.name) || 'Unknown';
+    const pickup = order.pickupDate ? `<br><strong>Pickup:</strong> ${formatDate(order.pickupDate)}` : '';
+    div.innerHTML = `<strong>${customer}</strong><br>${order.date || ''}${pickup}<br>${order.items.map(oi => {
+      const item = window.data.menuItems.find(m => m.id === oi.itemId);
+      return `${item ? item.name : 'Unknown'} x${oi.qty}`;
+    }).join('<br>')}`;
+    div.onclick = () => showProductionDetails(order);
+    list.appendChild(div);
+  });
+}
+function showProductionDetails(order) {
+  document.getElementById('production-details').style.display = 'block';
+  document.getElementById('unproduced-orders-list').style.display = 'none';
+  let info = `<strong>Customer:</strong> ${order.customerName || (window.data.customers.find(c => c.id === order.customerId)?.name) || 'Unknown'}<br>`;
+  info += `<strong>Date:</strong> ${order.date || ''}<br>`;
+  if (order.pickupDate) info += `<strong>Pickup:</strong> ${formatDate(order.pickupDate)}<br>`;
+  info += `<strong>Items:</strong><br>`;
+  order.items.forEach(oi => {
+    const item = window.data.menuItems.find(m => m.id === oi.itemId);
+    info += `- ${item ? item.name : 'Unknown'} x${oi.qty}<br>`;
+    if (item) info += `<em>${item.instructions}</em><br>`;
+  });
+  document.getElementById('production-order-info').innerHTML = info;
+  // Show ingredient requirements and warnings
+  let warnings = '';
+  let canProduce = true;
+  let usedIngredients = [];
+  order.items.forEach(oi => {
+    const item = window.data.menuItems.find(m => m.id === oi.itemId);
+    if (!item) return;
+    item.ingredientsRequired.forEach(ir => {
+      const ing = window.data.ingredients.find(i => i.id === ir.ingredientId);
+      if (ing) {
+        const required = ir.quantity * oi.qty;
+        usedIngredients.push({ name: ing.name, amount: required });
+        if (ing.quantity - required < 4) {
+          warnings += `<div style='color:#b30000;'>Warning: ${ing.name} will be below critical stock after production!</div>`;
+        }
+        if (ing.quantity < required) {
+          canProduce = false;
+          warnings += `<div style='color:#b30000;'>Not enough ${ing.name} for this order!</div>`;
+        }
+      }
+    });
+  });
+  document.getElementById('production-recipe-info').innerHTML = warnings;
+  document.getElementById('confirm-production').disabled = !canProduce;
+  document.getElementById('confirm-production').onclick = function() {
+    // Deduct ingredients, mark order as produced, add to productionHistory
+    order.items.forEach(oi => {
+      const item = window.data.menuItems.find(m => m.id === oi.itemId);
+      if (!item) return;
+      item.ingredientsRequired.forEach(ir => {
+        const ing = window.data.ingredients.find(i => i.id === ir.ingredientId);
+        if (ing) ing.quantity -= ir.quantity * oi.qty;
+      });
+      const totalCost = (item.cost || 0) * oi.qty;
+      const totalRevenue = (item.price || 0) * oi.qty;
+      window.data.productionHistory.push({
+        recipeName: item.name,
+        quantity: oi.qty,
+        totalCost,
+        totalRevenue,
+        date: new Date().toISOString(),
+        ingredientsUsed: item.ingredientsRequired.map(ir => {
+          const ing = window.data.ingredients.find(i => i.id === ir.ingredientId);
+          return { name: ing ? ing.name : ir.ingredientId, amount: ir.quantity * oi.qty };
+        })
+      });
+    });
+    order.produced = true;
+    order.status = 'Produced';
+    saveData();
+    renderIngredients();
+    renderUnproducedOrders();
+    updateCharts();
+    document.getElementById('production-details').style.display = 'none';
+    document.getElementById('unproduced-orders-list').style.display = 'block';
+  };
+}
+document.getElementById('back-to-production').onclick = function() {
+  document.getElementById('production-details').style.display = 'none';
+  document.getElementById('unproduced-orders-list').style.display = 'block';
+};
+document.getElementById('nav-production').addEventListener('click', () => {
+  showSection('production-section');
+  renderUnproducedOrders();
+});
+
+// --- CALENDAR TAB ---
+document.getElementById('nav-calendar').addEventListener('click', () => {
+  showSection('calendar-section');
+  renderCalendarView();
+});
+
+let calendarMonth = null; // {year, month} (month is 0-based)
+
+function renderCalendarView() {
+  const cal = getById('calendar-view');
+  if (!cal) return;
+  let now = new Date();
+  let year, month;
+  if (calendarMonth) {
+    year = calendarMonth.year;
+    month = calendarMonth.month;
+  } else {
+    year = now.getFullYear();
+    month = now.getMonth();
+    calendarMonth = { year, month };
+  }
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const daysInMonth = lastDay.getDate();
+
+  // Month navigation
+  let html = `
+    <div class="calendar-header">
+      <button id="cal-prev-month">&lt;</button>
+      <span style="font-size:1.2em;">${firstDay.toLocaleString(undefined, { month: 'long', year: 'numeric' })}</span>
+      <button id="cal-next-month">&gt;</button>
+    </div>
+    <table>
+      <tr>${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<th>${d}</th>`).join('')}</tr>
+  `;
+  let day = 1;
+  for (let i = 0; i < 6; i++) {
+    html += '<tr>';
+    for (let j = 0; j < 7; j++) {
+      if ((i === 0 && j < firstDay.getDay()) || day > daysInMonth) {
+        html += '<td></td>';
+      } else {
+        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const orders = window.data.orders.filter(o => o.pickupDate === dateStr);
+        const prods = (window.data.productionHistory||[]).filter(p => (p.date||'').slice(0,10) === dateStr);
+        // Highlight today
+        let isToday = (year === now.getFullYear() && month === now.getMonth() && day === now.getDate());
+        html += `<td class="${isToday ? 'calendar-today' : ''}">
+          <span class="calendar-day-number">${day}</span>
+          ${orders.length ? `<div class="calendar-orders">Orders: ${orders.length}</div>` : ''}
+          ${prods.length ? `<div class="calendar-produced">Produced: ${prods.length}</div>` : ''}
+        </td>`;
+        day++;
+      }
     }
-    closeModal();
-    calculateProduction(menuItem, qty);
+    html += '</tr>';
+    if (day > daysInMonth) break;
+  }
+  html += '</table>';
+  cal.innerHTML = html;
+
+  // Attach month navigation
+  document.getElementById('cal-prev-month').onclick = function() {
+    calendarMonth.month--;
+    if (calendarMonth.month < 0) {
+      calendarMonth.month = 11;
+      calendarMonth.year--;
+    }
+    renderCalendarView();
+  };
+  document.getElementById('cal-next-month').onclick = function() {
+    calendarMonth.month++;
+    if (calendarMonth.month > 11) {
+      calendarMonth.month = 0;
+      calendarMonth.year++;
+    }
+    renderCalendarView();
   };
 }
 
-function closeModal() {
-  document.getElementById('quantity-modal').style.display = 'none';
-  document.getElementById('production-quantity').value = '';
-}
-
-document.getElementById('close-modal').addEventListener('click', closeModal);
-document.getElementById('back-to-production').addEventListener('click', () => {
-  document.getElementById('production-details').style.display = 'none';
-  document.getElementById('menu-list').style.display = 'flex';
-});
-
-let currentProduction = null;
-
-function calculateProduction(menuItem, qty) {
-  let details = `To produce ${qty} of ${menuItem.name}, you will need:<br/>`;
-  let shortages = [];
-  let canProduce = true;
-
-  menuItem.ingredientsRequired.forEach(ir => {
-    const ingredient = window.data.ingredients.find(i => i.id === ir.ingredientId);
-    if (ingredient) {
-      const required = ir.quantity * qty;
-      const shortageAmount = required - ingredient.quantity;
-      if (shortageAmount > 0) {
-        shortages.push(`${ingredient.name}: Need ${shortageAmount} more`);
-        canProduce = false;
+// --- PATCH MODAL BUTTON HANDLERS TO BE ROBUST ---
+function attachModalHandlers() {
+  // Ingredient Modal
+  var addIngBtn = document.getElementById('add-ingredient-btn');
+  if (addIngBtn) {
+    addIngBtn.onclick = function() {
+      if (typeof renderIngredientModalForm === 'function') {
+        renderIngredientModalForm();
       }
-      details += `${ingredient.name}: ${required} ${shortageAmount > 0 ? "(Low Stock!)" : ""}<br/>`;
-    }
-  });
-
-  if (shortages.length > 0) {
-    details += `<br><strong>Shortages:</strong><br>${shortages.join("<br>")}`;
+      var title = document.getElementById('ingredient-modal-title');
+      if (title) title.textContent = 'Add Ingredient';
+      if (typeof showModal === 'function') showModal('ingredient-modal');
+    };
   }
-
-  document.getElementById('production-info').innerHTML = details;
-  document.getElementById('production-details').style.display = 'block';
-  document.getElementById('menu-list').style.display = 'none';
-
-  currentProduction = { menuItem, qty, canProduce };
+  var closeIngModal = document.getElementById('close-ingredient-modal');
+  if (closeIngModal) {
+    closeIngModal.onclick = function() { if (typeof hideModal === 'function') hideModal('ingredient-modal'); };
+  }
+  // Recipe Modal
+  var addRecipeBtn = document.getElementById('add-recipe-btn');
+  if (addRecipeBtn) {
+    addRecipeBtn.onclick = function() {
+      var form = document.getElementById('recipe-modal-form');
+      if (form) form.reset();
+      var id = document.getElementById('recipe-modal-id');
+      if (id) id.value = '';
+      var name = document.getElementById('recipe-modal-name');
+      if (name) name.value = '';
+      var instr = document.getElementById('recipe-modal-instructions');
+      if (instr) instr.value = '';
+      var ingCont = document.getElementById('recipe-modal-ingredients-container');
+      if (ingCont) ingCont.innerHTML = '<h3>Ingredients Required</h3>';
+      var price = document.getElementById('recipe-modal-price');
+      if (price) price.value = '';
+      var costDisp = document.getElementById('recipe-modal-cost-display');
+      if (costDisp) costDisp.textContent = 'Cost to Make: $0.00';
+      var title = document.getElementById('recipe-modal-title');
+      if (title) title.textContent = 'Add Recipe';
+      if (typeof showModal === 'function') showModal('recipe-modal');
+      if (typeof attachRecipeModalIngredientBtn === 'function') attachRecipeModalIngredientBtn();
+    };
+  }
+  var closeRecipeModal = document.getElementById('close-recipe-modal');
+  if (closeRecipeModal) {
+    closeRecipeModal.onclick = function() { if (typeof hideModal === 'function') hideModal('recipe-modal'); };
+  }
+  // Restock Modal
+  var restockCancel = document.getElementById('restock-cancel');
+  if (restockCancel) {
+    restockCancel.onclick = function() {
+      var modal = document.getElementById('restock-modal');
+      if (modal) modal.style.display = 'none';
+      window.restockIngredientId = null;
+    };
+  }
+  var restockConfirm = document.getElementById('restock-confirm');
+  if (restockConfirm) {
+    restockConfirm.onclick = function() {
+      const amount = parseInt(document.getElementById('restock-amount').value);
+      if (!isNaN(amount) && amount > 0 && restockIngredientId) {
+        const ing = window.data.ingredients.find(i => i.id === restockIngredientId);
+        if (ing) {
+          ing.quantity += amount;
+          saveData();
+          renderIngredients();
+          showLowStockAlert();
+          showToast(`Restocked ${ing.name} by ${amount}.`);
+        }
+      }
+      const modal = document.getElementById('restock-modal');
+      if (modal) modal.style.display = 'none';
+      restockIngredientId = null;
+    };
+  }
+  // Walk-in Modal
+  var walkinCancel = document.getElementById('walkin-cancel');
+  if (walkinCancel) {
+    walkinCancel.onclick = function() {
+      var modal = document.getElementById('walkin-modal');
+      if (modal) modal.style.display = 'none';
+    };
+  }
+  var walkinConfirm = document.getElementById('walkin-confirm');
+  if (walkinConfirm) {
+    walkinConfirm.onclick = function() {
+      var nameInput = document.getElementById('walkin-name');
+      if (!nameInput) return;
+      const name = nameInput.value.trim() || 'Walk-in';
+      var modal = document.getElementById('walkin-modal');
+      if (modal) modal.style.display = 'none';
+    };
+  }
+  // Quantity Modal
+  var closeQtyModal = document.getElementById('close-modal');
+  if (closeQtyModal) {
+    closeQtyModal.onclick = function() {
+      var modal = document.getElementById('quantity-modal');
+      if (modal) modal.style.display = 'none';
+    };
+  }
+  // Confirmation Modal
+  var closeConfirmModal = document.getElementById('close-confirm-modal');
+  if (closeConfirmModal) {
+    closeConfirmModal.onclick = function() { if (typeof hideModal === 'function') hideModal('confirm-modal'); };
+  }
+  // Add Ingredient to Recipe Modal
+  if (typeof attachRecipeModalIngredientBtn === 'function') attachRecipeModalIngredientBtn();
 }
 
-document.getElementById('confirm-production').onclick = function() {
-  if (!currentProduction || !currentProduction.canProduce) {
-    alert("Cannot produce due to ingredient shortages.");
-    return;
-  }
-  currentProduction.menuItem.ingredientsRequired.forEach(ir => {
-    const ingredient = window.data.ingredients.find(i => i.id === ir.ingredientId);
-    if (ingredient) {
-      ingredient.quantity -= ir.quantity * currentProduction.qty;
-    }
-  });
-  const totalCost = (currentProduction.menuItem.cost || 0) * currentProduction.qty;
-  const totalRevenue = (currentProduction.menuItem.price || 0) * currentProduction.qty;
-  window.data.productionHistory.push({
-    recipeName: currentProduction.menuItem.name,
-    quantity: currentProduction.qty,
-    totalCost,
-    totalRevenue,
-    date: new Date().toISOString()
-  });
-  saveData();
-  renderIngredients();
-  updateCharts();
-  document.getElementById('production-details').style.display = 'none';
-  document.getElementById('menu-list').style.display = 'flex';
-  currentProduction = null;
-  showToast("Production confirmed! Ingredient levels updated.");
-};
-
-function showLowStockAlert() {
-  const lowStock = window.data.ingredients.filter(i => i.quantity < 4);
-  const alertDiv = document.getElementById('low-stock-alert');
-  if (lowStock.length) {
-    alertDiv.style.display = 'block';
-    alertDiv.innerHTML = `<strong>Low Stock Alert:</strong> ${lowStock.map(i => i.name).join(', ')}`;
-  } else {
-    alertDiv.style.display = 'none';
-  }
-}
-
-// Call this in updateCharts and after ingredient changes
-function updateCharts() {
-  if (typeof renderIngredientChart === "function") renderIngredientChart();
-  if (typeof renderRecipeChart === "function") renderRecipeChart();
-  if (typeof renderMoneyChart === "function") renderMoneyChart();
-  showLowStockAlert();
-}
-
+// --- CALL attachModalHandlers ON LOAD ---
 window.onload = function() {
-  window.loadData();
-  renderIngredients();
-  renderMenuItems();
-  renderMenuList();
-  updateCharts();
-  if (!localStorage.getItem('cinnamonSecretsWelcomed')) {
-    showToast("Welcome to Cinnamon Secrets Bakery Manager! 🎉");
-    localStorage.setItem('cinnamonSecretsWelcomed', 'yes');
-  }
+  if (window.loadData) window.loadData();
+  if (typeof setupNavigation === 'function') setupNavigation();
+  if (typeof attachModalHandlers === 'function') attachModalHandlers();
+  if (typeof showSection === 'function') showSection('dashboard-section');
+  if (typeof updateCharts === 'function') updateCharts();
 };
 
+// --- MISSING FUNCTION IMPLEMENTATIONS ---
+
+// INGREDIENTS
 window.editIngredient = function(id) {
   const ing = window.data.ingredients.find(i => i.id === id);
-  if (ing) {
-    document.getElementById('ingredient-id').value = ing.id;
-    document.getElementById('ingredient-name').value = ing.name;
-    document.getElementById('ingredient-price').value = ing.price;
-    document.getElementById('ingredient-quantity').value = ing.quantity;
-  }
+  if (!ing) return;
+  document.getElementById('ingredient-id').value = ing.id;
+  document.getElementById('ingredient-name').value = ing.name;
+  document.getElementById('ingredient-quantity').value = ing.quantity;
+  document.getElementById('ingredient-unit').value = ing.unit || '';
+  document.getElementById('ingredient-price').value = ing.price;
+  document.getElementById('ingredient-modal-title').textContent = 'Edit Ingredient';
+  showModal('ingredient-modal');
 };
 
 window.deleteIngredient = function(id) {
-  if (confirm('Delete this ingredient?')) {
+  showConfirm('Delete this ingredient?', () => {
     window.data.ingredients = window.data.ingredients.filter(i => i.id !== id);
-    window.data.menuItems.forEach(item => {
-      item.ingredientsRequired = item.ingredientsRequired.filter(ir => ir.ingredientId !== id);
-    });
     saveData();
     renderIngredients();
-    renderMenuItems();
-    renderMenuList();
-    showToast("Ingredient deleted!");
+    showToast('Ingredient deleted!');
+  });
+};
+
+window.showLowStockAlert = function() {
+  const alertDiv = document.getElementById('low-stock-alert');
+  if (!alertDiv) return;
+  const low = window.data.ingredients.filter(i => i.quantity < 4);
+  if (low.length) {
+    alertDiv.innerHTML = 'Low stock: ' + low.map(i => `<b>${i.name}</b> (${i.quantity})`).join(', ');
+    alertDiv.style.display = '';
+  } else {
+    alertDiv.style.display = 'none';
   }
 };
 
+// RECIPES
 window.deleteMenuItem = function(id) {
-  if (confirm('Delete this recipe?')) {
+  showConfirm('Delete this recipe?', () => {
     window.data.menuItems = window.data.menuItems.filter(m => m.id !== id);
     saveData();
     renderMenuItems();
-    renderMenuList();
-    showToast("Recipe deleted!");
-  }
+    showToast('Recipe deleted!');
+  });
 };
 
-// Add to window.data
-window.data.orders = window.data.orders || [];
-
-window.data.customers = window.data.customers || [];
-
+// CUSTOMERS
+function renderCustomerForm(customer = null) {
+  document.getElementById('customer-id').value = customer ? customer.id : '';
+  document.getElementById('customer-name').value = customer ? customer.name : '';
+  document.getElementById('customer-phone').value = customer ? customer.phone || '' : '';
+  document.getElementById('customer-email').value = customer ? customer.email || '' : '';
+}
+window.editCustomer = function(id) {
+  const c = window.data.customers.find(c => c.id === id);
+  if (c) renderCustomerForm(c);
+};
+window.deleteCustomer = function(id) {
+  showConfirm('Delete this customer?', () => {
+    window.data.customers = window.data.customers.filter(c => c.id !== id);
+    saveData();
+    renderCustomers();
+    showToast('Customer deleted!');
+  });
+}
 document.getElementById('customer-form').addEventListener('submit', function(e) {
   e.preventDefault();
   let id = document.getElementById('customer-id').value;
@@ -512,531 +1009,337 @@ document.getElementById('customer-form').addEventListener('submit', function(e) 
   renderCustomers();
   this.reset();
   document.getElementById('customer-id').value = '';
-  showToast("Customer saved!");
+  showToast('Customer saved!');
 });
 
-function renderCustomers() {
-  const tbody = document.getElementById('customers-table').getElementsByTagName('tbody')[0];
-  tbody.innerHTML = '';
-  if (!window.data.customers.length) {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td colspan="4" style="text-align:center;color:#aaa;">No customers yet.</td>`;
-    tbody.appendChild(tr);
-    return;
-  }
-  window.data.customers.forEach(c => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${c.name}</td>
-      <td>${c.phone || ''}</td>
-      <td>${c.email || ''}</td>
-      <td>
-        <button type="button" onclick="editCustomer('${c.id}')">Edit</button>
-        <button type="button" onclick="deleteCustomer('${c.id}')">Delete</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-window.editCustomer = function(id) {
-  const c = window.data.customers.find(c => c.id === id);
-  if (c) {
-    document.getElementById('customer-id').value = c.id;
-    document.getElementById('customer-name').value = c.name;
-    document.getElementById('customer-phone').value = c.phone;
-    document.getElementById('customer-email').value = c.email;
-  }
+// --- GENERIC CONFIRM MODAL ---
+window.showConfirm = function(message, onYes) {
+  const modal = document.getElementById('confirm-modal');
+  document.getElementById('confirm-modal-message').textContent = message;
+  modal.style.display = 'flex';
+  document.getElementById('confirm-modal-yes').onclick = function() {
+    modal.style.display = 'none';
+    if (typeof onYes === 'function') onYes();
+  };
+  document.getElementById('confirm-modal-no').onclick = function() {
+    modal.style.display = 'none';
+  };
+  document.getElementById('close-confirm-modal').onclick = function() {
+    modal.style.display = 'none';
+  };
+};
+window.hideModal = function(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.style.display = 'none';
+};
+window.showModal = function(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.style.display = 'flex';
 };
 
-window.deleteCustomer = function(id) {
-  if (confirm('Delete this customer?')) {
-    window.data.customers = window.data.customers.filter(c => c.id !== id);
-    saveData();
-    renderCustomers();
-    showToast("Customer deleted!");
-  }
-};
-
-// Orders: Use customer dropdown
-function populateOrderCustomer() {
-  const select = document.getElementById('order-customer');
-  select.innerHTML = '';
-  window.data.customers.forEach(c => {
-    const option = document.createElement('option');
-    option.value = c.id;
-    option.textContent = c.name;
-    select.appendChild(option);
-  });
-  // Allow manual entry for new customers
-  const option = document.createElement('option');
-  option.value = '';
-  option.textContent = 'New Customer...';
-  select.appendChild(option);
-}
-
-document.getElementById('nav-orders').addEventListener('click', () => {
-  showSection('orders-section');
-  document.getElementById('order-search').value = '';
-  document.getElementById('order-status-filter').value = '';
-  renderOrders();
-  populateOrderCustomer();
-  const container = document.getElementById('order-items-container');
-  container.innerHTML = '';
-  addOrderItemRow();
-});
-
-document.getElementById('order-customer').addEventListener('change', function() {
-  if (this.value === '') {
-    this.type = 'text';
-    this.value = '';
-    this.placeholder = 'Enter customer name';
-  }
-});
-
-// Update order-form submit to save new customers if needed
-let pendingOrderSubmit = null;
-
-document.getElementById('order-form').addEventListener('submit', function(e) {
-  e.preventDefault();
-  let customerId = document.getElementById('order-customer').value;
-  let customerName = '';
-  let isWalkIn = false;
-
-  if (!customerId) {
-    // Show walk-in modal instead of prompt
-    document.getElementById('walkin-name').value = '';
-    document.getElementById('walkin-modal').style.display = 'flex';
-    // Accepts the name from the modal!
-    pendingOrderSubmit = (walkinName) => submitOrder(this, walkinName, true);
-    return;
-  } else {
-    const customer = window.data.customers.find(c => c.id === customerId);
-    customerName = customer ? customer.name : "Unknown";
-    submitOrder(this, customerName, false);
-  }
-});
-
-document.getElementById('walkin-cancel').onclick = function() {
-  document.getElementById('walkin-modal').style.display = 'none';
-  pendingOrderSubmit = null;
-};
-
-document.getElementById('walkin-confirm').onclick = function() {
-  const name = document.getElementById('walkin-name').value.trim() || "Walk-in";
-  document.getElementById('walkin-modal').style.display = 'none';
-  if (pendingOrderSubmit) {
-    pendingOrderSubmit(name);
-    pendingOrderSubmit = null;
-  }
-};
-
-// Helper for order submission
-function submitOrder(form, walkinName, isWalkIn) {
-  let customerId = document.getElementById('order-customer').value;
-  let customerName = walkinName || '';
-  if (!isWalkIn) {
-    const customer = window.data.customers.find(c => c.id === customerId);
-    customerName = customer ? customer.name : "Unknown";
-  }
-
-  // Gather all selected items and quantities
-  let items = [];
-  document.querySelectorAll('.order-item-row').forEach(row => {
-    const itemSelect = row.querySelector('select');
-    const qtyInput = row.querySelector('input[type="number"]');
-    if (itemSelect && qtyInput && itemSelect.value && qtyInput.value > 0) {
-      items.push({
-        itemId: itemSelect.value,
-        qty: parseInt(qtyInput.value)
-      });
-    }
-  });
-  if (!items.length) {
-    showToast("Please add at least one menu item.");
-    return;
-  }
-
-  // Save order (do not save walk-in to customers)
-  window.data.orders.push({
-    id: Date.now().toString(),
-    customerId: isWalkIn ? null : customerId,
-    customerName,
-    items,
-    status: 'Pending'
-  });
-  saveData();
-  renderOrders();
-  form.reset();
-  // Reset order items to just one row
-  document.getElementById('order-items-container').innerHTML = '';
-  addOrderItemRow();
-  showToast("Order added!");
-}
-
-document.getElementById('order-search').addEventListener('input', function() {
-  renderOrders(this.value, document.getElementById('order-status-filter').value);
-});
-document.getElementById('order-status-filter').addEventListener('change', function() {
-  renderOrders(document.getElementById('order-search').value, this.value);
-});
-
-// Update the renderOrders function to accept a status filter:
-function renderOrders(searchTerm = '', statusFilter = '') {
-  const tbody = document.getElementById('orders-table').getElementsByTagName('tbody')[0];
-  tbody.innerHTML = '';
-  let orders = window.data.orders;
-  if (statusFilter) {
-    orders = orders.filter(order => order.status === statusFilter);
-  }
-  if (searchTerm && searchTerm.trim()) {
-    const term = searchTerm.trim().toLowerCase();
-    orders = orders.filter(order => {
-      const customer = order.customerName || (window.data.customers.find(c => c.id === order.customerId)?.name) || '';
-      const itemsStr = order.items.map(oi => {
-        const item = window.data.menuItems.find(m => m.id === oi.itemId);
-        return item ? item.name : '';
-      }).join(' ');
-      return customer.toLowerCase().includes(term) || itemsStr.toLowerCase().includes(term);
-    });
-  }
-  if (!orders.length) {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td colspan="5" style="text-align:center;color:#aaa;">No orders found.</td>`;
-    tbody.appendChild(tr);
-    return;
-  }
-  orders.forEach(order => {
-    const customer = order.customerName || (window.data.customers.find(c => c.id === order.customerId)?.name) || 'Unknown';
-    const itemsStr = order.items.map(oi => {
-      const item = window.data.menuItems.find(m => m.id === oi.itemId);
-      return `${item ? item.name : 'Unknown'} x${oi.qty}`;
-    }).join('<br>');
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${customer}</td>
-      <td>${itemsStr}</td>
-      <td>${order.items.reduce((sum, oi) => sum + oi.qty, 0)}</td>
-      <td>${order.status}</td>
-      <td>
-        ${order.status === 'Pending' ? `<button type="button" onclick="fulfillOrder('${order.id}')">Fulfill</button>` : ''}
-        <button type="button" onclick="deleteOrder('${order.id}')">Delete</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-window.fulfillOrder = function(id) {
-  const order = window.data.orders.find(o => o.id === id);
-  if (!order) return;
-
-  // Fulfill all items in the order
-  let canProduce = true;
-  let shortages = [];
-  order.items.forEach(oi => {
-    const menuItem = window.data.menuItems.find(m => m.id === oi.itemId);
-    if (!menuItem) return;
-    menuItem.ingredientsRequired.forEach(ir => {
-      const ingredient = window.data.ingredients.find(i => i.id === ir.ingredientId);
-      if (ingredient) {
-        const required = ir.quantity * oi.qty;
-        if (ingredient.quantity < required) {
-          shortages.push(`${ingredient.name} (need ${required - ingredient.quantity} more)`);
-          canProduce = false;
-        }
-      }
-    });
-  });
-
-  if (!canProduce) {
-    showToast("Cannot fulfill order: Not enough ingredients!\n" + shortages.join(", "));
-    return;
-  }
-
-  // Deduct ingredients and record production
-  order.items.forEach(oi => {
-    const menuItem = window.data.menuItems.find(m => m.id === oi.itemId);
-    if (!menuItem) return;
-    menuItem.ingredientsRequired.forEach(ir => {
-      const ingredient = window.data.ingredients.find(i => i.id === ir.ingredientId);
-      if (ingredient) {
-        ingredient.quantity -= ir.quantity * oi.qty;
-      }
-    });
-    const totalCost = (menuItem.cost || 0) * oi.qty;
-    const totalRevenue = (menuItem.price || 0) * oi.qty;
-    window.data.productionHistory.push({
-      recipeName: menuItem.name,
-      quantity: oi.qty,
-      totalCost,
-      totalRevenue,
-      date: new Date().toISOString()
-    });
-  });
-
-  order.status = 'Fulfilled';
-  saveData();
-  renderIngredients();
-  renderOrders();
-  updateCharts();
-  showToast("Order fulfilled!");
-};
-
-window.deleteOrder = function(id) {
-  window.data.orders = window.data.orders.filter(o => o.id !== id);
-  saveData();
-  renderOrders();
-  showToast("Order deleted!");
-};
-
+// --- DASHBOARD BUTTONS ---
 document.getElementById('export-data').onclick = function() {
-  const blob = new Blob([JSON.stringify(window.data, null, 2)], {type: "application/json"});
+  const dataStr = JSON.stringify(window.data, null, 2);
+  const blob = new Blob([dataStr], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = "cinnamon_secrets_data.json";
+  a.download = 'cinnamon_secrets_data.json';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showToast("Data exported!");
 };
-
 document.getElementById('import-data').onclick = function() {
   document.getElementById('import-file').click();
 };
-
-document.getElementById('import-file').onchange = function(e) {
+document.getElementById('import-file').addEventListener('change', function(e) {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(evt) {
     try {
-      const imported = JSON.parse(evt.target.result);
-      if (imported.ingredients && imported.menuItems && imported.productionHistory) {
-        window.data = imported;
-        window.data.orders = window.data.orders || [];
-        window.data.customers = window.data.customers || [];
-        saveData();
-        renderIngredients();
-        renderMenuItems();
-        renderMenuList();
-        updateCharts();
-        showToast("Data imported!");
-      } else {
-        showToast("Invalid data file.");
-      }
-    } catch {
-      showToast("Failed to import data.");
+      window.data = JSON.parse(evt.target.result);
+      saveData();
+      location.reload();
+    } catch (err) {
+      showToast('Import failed: Invalid file');
     }
   };
   reader.readAsText(file);
-};
-
-document.addEventListener('keydown', function(e) {
-  if (e.key === "Escape") closeModal();
 });
-
-document.getElementById('quantity-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-
 document.getElementById('reset-data').onclick = function() {
-  // Show a prompt for what to keep
-  const keepIngredients = confirm("Keep ingredients? (OK = Yes, Cancel = No)");
-  const keepRecipes = confirm("Keep recipes? (OK = Yes, Cancel = No)");
-  const keepCustomers = confirm("Keep customers? (OK = Yes, Cancel = No)");
-  window.data = {
-    ingredients: keepIngredients ? window.data.ingredients : [],
-    menuItems: keepRecipes ? window.data.menuItems : [],
-    productionHistory: [],
-    orders: [],
-    customers: keepCustomers ? window.data.customers : []
-  };
-  window.data.orders = window.data.orders || [];
-  window.data.customers = window.data.customers || [];
-  saveData();
-  renderIngredients();
-  renderMenuItems();
-  renderMenuList();
-  renderCustomers();
-  updateCharts();
-  showToast("Data reset!");
+  showConfirm('Reset ALL data? This cannot be undone.', () => {
+    localStorage.removeItem('cinnamonSecretsData');
+    location.reload();
+  });
 };
-
 document.getElementById('export-report').onclick = function() {
-  // Group production by month
-  const history = window.data.productionHistory || [];
-  const orders = window.data.orders || [];
-  if (!history.length && !orders.length) {
-    showToast("No data to report.");
-    return;
-  }
+  // Get current month/year
   const now = new Date();
-  const month = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1; // 1-based
 
-  // Production summary
-  let totalRevenue = 0, totalCost = 0, totalProfit = 0;
-  let recipeSummary = {};
-  let ingredientUsage = {};
+  // Helper to check if a date string is in this month
+  function isInMonth(dateStr) {
+    if (!dateStr) return false;
+    const [y, m] = dateStr.split('-');
+    return Number(y) === year && Number(m) === month;
+  }
 
-  history.forEach(entry => {
-    const d = new Date(entry.date);
-    if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
-      totalRevenue += entry.totalRevenue;
-      totalCost += entry.totalCost;
-      totalProfit += (entry.totalRevenue - entry.totalCost);
-      recipeSummary[entry.recipeName] = (recipeSummary[entry.recipeName] || 0) + entry.quantity;
-      // Calculate ingredient usage
-      const menuItem = window.data.menuItems.find(m => m.name === entry.recipeName);
-      if (menuItem) {
-        menuItem.ingredientsRequired.forEach(ir => {
-          ingredientUsage[ir.ingredientId] = (ingredientUsage[ir.ingredientId] || 0) + ir.quantity * entry.quantity;
-        });
-      }
-    }
-  });
+  // --- ORDERS SECTION ---
+  let csv = `CINNAMON SECRETS MONTHLY REPORT\nMonth,${now.toLocaleString(undefined, { month: 'long', year: 'numeric' })}\n\n`;
+  csv += '--- ORDERS ---\n';
+  csv += 'Order Date,Pickup Date,Customer,Customer Type,Items,Qty,Total,Status\n';
 
-  // Orders summary
-  let ordersSection = `Orders This Month:\n`;
-  let orderCount = 0;
+  const orders = (window.data.orders || []).filter(o => isInMonth(o.pickupDate));
   orders.forEach(order => {
-    const d = new Date(parseInt(order.id));
-    if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
-      orderCount++;
-      ordersSection += `Order #${order.id} - ${order.customerName || 'Unknown'}\n`;
-      order.items.forEach(oi => {
-        const item = window.data.menuItems.find(m => m.id === oi.itemId);
-        ordersSection += `  - ${item ? item.name : 'Unknown'} x${oi.qty}\n`;
-      });
-      ordersSection += `Status: ${order.status}\n\n`;
+    const customerType = order.customerId ? 'Registered' : 'Walk-in';
+    const itemsStr = (order.items || []).map(oi => {
+      const item = window.data.menuItems.find(m => m.id === oi.itemId);
+      return `${item ? item.name : 'Unknown'} x${oi.qty}`;
+    }).join(' | ');
+    const qty = order.items.reduce((sum, oi) => sum + oi.qty, 0);
+    const total = order.items.reduce((sum, oi) => {
+      const item = window.data.menuItems.find(m => m.id === oi.itemId);
+      return sum + ((item?.price || 0) * oi.qty);
+    }, 0);
+    csv += [
+      order.date,
+      order.pickupDate,
+      `"${order.customerName}"`,
+      customerType,
+      `"${itemsStr}"`,
+      qty,
+      `$${total.toFixed(2)}`,
+      order.status
+    ].join(',') + '\n';
+  });
+
+  csv += '\n';
+
+  // --- CUSTOMER SUMMARY SECTION ---
+  csv += '--- CUSTOMER SUMMARY ---\n';
+  csv += 'Customer,Customer Type,Orders,Total Items,Total Spent\n';
+  // Group by customerName/customerId
+  const customerStats = {};
+  orders.forEach(order => {
+    const key = order.customerId || 'walkin:' + (order.customerName || 'Walk-in');
+    if (!customerStats[key]) {
+      customerStats[key] = {
+        name: order.customerName,
+        type: order.customerId ? 'Registered' : 'Walk-in',
+        orders: 0,
+        items: 0,
+        spent: 0
+      };
     }
+    customerStats[key].orders += 1;
+    customerStats[key].items += order.items.reduce((sum, oi) => sum + oi.qty, 0);
+    customerStats[key].spent += order.items.reduce((sum, oi) => {
+      const item = window.data.menuItems.find(m => m.id === oi.itemId);
+      return sum + ((item?.price || 0) * oi.qty);
+    }, 0);
   });
-  if (orderCount === 0) ordersSection += "No orders this month.\n";
+  Object.values(customerStats).forEach(stat => {
+    csv += [
+      `"${stat.name}"`,
+      stat.type,
+      stat.orders,
+      stat.items,
+      `$${stat.spent.toFixed(2)}`
+    ].join(',') + '\n';
+  });
 
-  let report = `Cinnamon Secrets Monthly Report - ${month}\n\n`;
-  report += `Total Revenue: $${totalRevenue.toFixed(2)}\n`;
-  report += `Total Cost: $${totalCost.toFixed(2)}\n`;
-  report += `Total Profit: $${totalProfit.toFixed(2)}\n\n`;
-  report += `Production Summary:\n`;
-  Object.entries(recipeSummary).forEach(([name, qty]) => {
-    report += `- ${name}: ${qty}\n`;
-  });
-  report += `\nIngredient Usage:\n`;
-  Object.entries(ingredientUsage).forEach(([id, qty]) => {
-    const ing = window.data.ingredients.find(i => i.id === id);
-    report += `- ${ing ? ing.name : id}: ${qty}\n`;
-  });
-  report += `\n${ordersSection}`;
+  csv += '\n';
 
-  // Export as text file
-  const blob = new Blob([report], {type: "text/plain"});
+  // --- RECIPE SUMMARY SECTION ---
+  csv += '--- RECIPE SUMMARY ---\n';
+  csv += 'Recipe,Produced Qty,Total Revenue\n';
+  // Count by recipe
+  const recipeStats = {};
+  orders.forEach(order => {
+    (order.items || []).forEach(oi => {
+      const item = window.data.menuItems.find(m => m.id === oi.itemId);
+      if (!item) return;
+      if (!recipeStats[item.name]) {
+        recipeStats[item.name] = { qty: 0, revenue: 0 };
+      }
+      recipeStats[item.name].qty += oi.qty;
+      recipeStats[item.name].revenue += (item.price || 0) * oi.qty;
+    });
+  });
+  Object.entries(recipeStats).forEach(([name, stat]) => {
+    csv += [
+      `"${name}"`,
+      stat.qty,
+      `$${stat.revenue.toFixed(2)}`
+    ].join(',') + '\n';
+  });
+
+  csv += '\n';
+
+  // --- PRODUCTION HISTORY SECTION ---
+  csv += '--- PRODUCTION HISTORY ---\n';
+  csv += 'Date,Recipe,Qty,Total Cost,Total Revenue\n';
+  (window.data.productionHistory || []).forEach(entry => {
+    // Only include this month
+    if (!isInMonth((entry.date || '').slice(0, 10))) return;
+    csv += [
+      entry.date || '',
+      entry.recipeName || '',
+      entry.quantity || '',
+      entry.totalCost || '',
+      entry.totalRevenue || ''
+    ].join(',') + '\n';
+  });
+
+  // Download
+  const blob = new Blob([csv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `CinnamonSecrets_Report_${month.replace(/\s/g, '_')}.txt`;
+  a.download = `cinnamon_secrets_monthly_report_${year}_${String(month).padStart(2, '0')}.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showToast("Monthly report exported!");
 };
 
-function updateMenuCostPreview() {
-  let ingredientsRequired = [];
-  document.querySelectorAll('.menu-ingredient-row').forEach(row => {
-    const select = row.querySelector('select');
-    const qtyInput = row.querySelector('input[type="number"]');
-    if (select && qtyInput) {
-      ingredientsRequired.push({ ingredientId: select.value, quantity: parseInt(qtyInput.value) || 0 });
-    }
+// --- EDIT ORDER MODAL LOGIC ---
+
+window.editOrder = function(orderId) {
+  const order = window.data.orders.find(o => o.id === orderId);
+  if (!order) return;
+  // Populate modal fields
+  document.getElementById('edit-order-id').value = order.id;
+
+  // Populate customer select
+  const customers = window.data.customers || [];
+  const select = document.getElementById('edit-order-customer-select');
+  select.innerHTML = `
+    <option value="">Select Customer</option>
+    ${customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+    <option value="new">New Customer / Walk-in</option>
+  `;
+  const nameInput = document.getElementById('edit-order-customer-name');
+  if (order.customerId) {
+    select.value = order.customerId;
+    nameInput.style.display = 'none';
+    nameInput.value = '';
+  } else {
+    select.value = 'new';
+    nameInput.style.display = '';
+    nameInput.value = order.customerName || '';
+  }
+  select.onchange = function() {
+    nameInput.style.display = (select.value === 'new') ? '' : 'none';
+  };
+
+  // Pickup date
+  const pickupInput = document.getElementById('edit-order-pickup-date');
+  pickupInput.min = getMinPickupDateStr();
+  pickupInput.value = order.pickupDate || getMinPickupDateStr();
+
+  // Items
+  const container = document.getElementById('edit-order-items-container');
+  container.innerHTML = '';
+  (order.items || []).forEach(item => {
+    addEditOrderItemRow(item.itemId, item.qty);
   });
-  let cost = ingredientsRequired.reduce((total, ir) => {
-    let ingredient = window.data.ingredients.find(i => i.id === ir.ingredientId);
-    return ingredient ? total + (ingredient.price * ir.quantity) : total;
-  }, 0);
-  document.getElementById('menu-cost-display').textContent = `Cost to Make: $${cost.toFixed(2)}`;
-}
+  if (!order.items || !order.items.length) addEditOrderItemRow();
 
-// window.data.staff = window.data.staff || [];
+  // Add item button
+  document.getElementById('edit-add-order-item').onclick = addEditOrderItemRow;
 
-// document.getElementById('nav-staff').addEventListener('click', () => {
-//   showSection('staff-section');
-//   renderStaff();
-// });
+  // Show modal
+  document.getElementById('edit-order-modal').style.display = 'flex';
+};
 
-// document.getElementById('staff-form').addEventListener('submit', function(e) {
-//   e.preventDefault();
-//   const name = document.getElementById('staff-name').value;
-//   const role = document.getElementById('staff-role').value;
-//   window.data.staff.push({ id: Date.now().toString(), name, role });
-//   saveData();
-//   renderStaff();
-//   this.reset();
-//   showToast("Staff added!");
-// });
-
-// function renderStaff() {
-//   const tbody = document.getElementById('staff-table').getElementsByTagName('tbody')[0];
-//   tbody.innerHTML = '';
-//   if (!window.data.staff.length) {
-//     const tr = document.createElement('tr');
-//     tr.innerHTML = `<td colspan="3" style="text-align:center;color:#aaa;">No staff yet.</td>`;
-//     tbody.appendChild(tr);
-//     return;
-//   }
-//   window.data.staff.forEach(staff => {
-//     const tr = document.createElement('tr');
-//     tr.innerHTML = `
-//       <td>${staff.name}</td>
-//       <td>${staff.role}</td>
-//       <td><button type="button" onclick="deleteStaff('${staff.id}')">Delete</button></td>
-//     `;
-//     tbody.appendChild(tr);
-//   });
-// }
-
-// window.deleteStaff = function(id) {
-//   window.data.staff = window.data.staff.filter(s => s.id !== id);
-//   saveData();
-//   renderStaff();
-//   showToast("Staff deleted!");
-// };
-
-function addOrderItemRow(selectedId = '', qty = 1) {
-  const container = document.getElementById('order-items-container');
+// Helper for edit modal: add item row
+function addEditOrderItemRow(selectedId = '', qty = 1) {
+  const container = document.getElementById('edit-order-items-container');
+  if (!container) return;
   const row = document.createElement('div');
   row.className = 'order-item-row';
-
+  // Menu items dropdown
   const select = document.createElement('select');
-  window.data.menuItems.forEach(item => {
-    const option = document.createElement('option');
-    option.value = item.id;
-    option.textContent = item.name;
-    if (item.id === selectedId) option.selected = true;
-    select.appendChild(option);
-  });
-
+  select.required = true;
+  select.innerHTML = `<option value="">Select Item</option>` +
+    (window.data.menuItems || []).map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+  if (selectedId) select.value = selectedId;
+  // Quantity input
   const input = document.createElement('input');
   input.type = 'number';
   input.min = 1;
   input.value = qty;
   input.required = true;
-
+  input.style = 'width:60px;display:inline-block;margin-left:8px;';
+  // Remove button
   const removeBtn = document.createElement('button');
   removeBtn.type = 'button';
   removeBtn.textContent = 'Remove';
+  removeBtn.style = 'margin-left:8px;';
   removeBtn.onclick = () => row.remove();
-
+  // Append
   row.appendChild(select);
   row.appendChild(input);
   row.appendChild(removeBtn);
-
   container.appendChild(row);
 }
 
-// Add row button
-document.getElementById('add-order-item').addEventListener('click', function() {
-  addOrderItemRow();
-});
+// Save changes handler
+document.getElementById('edit-order-form').onsubmit = function(e) {
+  e.preventDefault();
+  const id = document.getElementById('edit-order-id').value;
+  const select = document.getElementById('edit-order-customer-select');
+  const nameInput = document.getElementById('edit-order-customer-name');
+  const pickupInput = document.getElementById('edit-order-pickup-date');
+  let customerId = '';
+  let customerName = '';
+  if (select) {
+    if (select.value === 'new') {
+      customerName = nameInput.value.trim() || 'Walk-in';
+    } else {
+      customerId = select.value;
+      const custObj = (window.data.customers || []).find(c => c.id === customerId);
+      customerName = custObj ? custObj.name : '';
+    }
+  }
+  // Validate pickup date
+  let pickupDate = pickupInput ? pickupInput.value : '';
+  const minPickup = getMinPickupDateStr();
+  if (!pickupDate || pickupDate < minPickup) {
+    showToast('Pickup date must be at least 48 hours from now.');
+    return;
+  }
+  // Gather items
+  const items = [];
+  document.querySelectorAll('#edit-order-items-container .order-item-row').forEach(row => {
+    const itemSelect = row.querySelector('select');
+    const qtyInput = row.querySelector('input[type="number"]');
+    if (itemSelect && qtyInput && itemSelect.value && parseInt(qtyInput.value) > 0) {
+      items.push({ itemId: itemSelect.value, qty: parseInt(qtyInput.value) });
+    }
+  });
+  if (!customerName || !items.length) return;
+  // Update order
+  const order = window.data.orders.find(o => o.id === id);
+  if (order) {
+    order.customerId = customerId;
+    order.customerName = customerName;
+    order.pickupDate = pickupDate;
+    order.items = items;
+  }
+  saveData();
+  renderOrders();
+  showToast('Order updated!');
+  document.getElementById('edit-order-modal').style.display = 'none';
+};
+
+// Close modal handler
+document.getElementById('close-edit-order-modal').onclick = function() {
+  document.getElementById('edit-order-modal').style.display = 'none';
+};
+
+// --- END PATCH ---

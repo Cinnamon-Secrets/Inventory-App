@@ -1,4 +1,4 @@
-let ingredientChartInstance, recipeChartInstance, moneyChartInstance;
+let ingredientChartInstance, recipeChartInstance, moneyChartInstance, ingredientUsageChartInstance;
 
 function renderIngredientChart() {
   const ctx = document.getElementById('ingredient-chart').getContext('2d');
@@ -6,7 +6,7 @@ function renderIngredientChart() {
   ingredientChartInstance = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: (window.data.ingredients || []).map(i => i.name),
+      labels: (window.data.ingredients || []).map(i => i.name + (i.unit ? ` (${i.unit})` : '')),
       datasets: [{
         label: 'Stock Levels',
         data: (window.data.ingredients || []).map(i => i.quantity),
@@ -75,8 +75,43 @@ function renderMoneyChart() {
   });
 }
 
+function renderIngredientUsageChart() {
+  const ctx = document.getElementById('ingredient-usage-chart').getContext('2d');
+  if (ingredientUsageChartInstance) ingredientUsageChartInstance.destroy();
+  // Calculate usage per ingredient from productionHistory
+  const usage = {};
+  const history = Array.isArray(window.data.productionHistory) ? window.data.productionHistory : [];
+  history.forEach(entry => {
+    if (Array.isArray(entry.ingredientsUsed)) {
+      entry.ingredientsUsed.forEach(used => {
+        usage[used.name] = (usage[used.name] || 0) + used.amount;
+      });
+    }
+  });
+  ingredientUsageChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(usage),
+      datasets: [{
+        label: 'Ingredient Usage',
+        data: Object.values(usage),
+        backgroundColor: '#ffb8e8',
+        borderColor: '#ff80c0',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
 function updateCharts() {
   renderIngredientChart();
   renderRecipeChart();
   renderMoneyChart();
+  renderIngredientUsageChart();
 }
