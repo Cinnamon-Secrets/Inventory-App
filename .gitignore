@@ -1,0 +1,36 @@
+# Node dependencies
+node_modules/
+
+# Build artifacts
+/dist/
+/out/
+/release/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Electron packaging output
+/build/*.app
+/build/*.exe
+/build/*.dmg
+/build/*.zip
+/dist_electron/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Local persistence
+*.sqlite
+*.db
+/backups/
+/archives/
+
+# Env/config
+env.local
+.env*
+
+# Coverage & reports
+coverage/
+reports/

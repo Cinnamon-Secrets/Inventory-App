@@ -1,0 +1,579 @@
+﻿{
+  "ingredients": [
+    {
+      "id": "ingredient-flour",
+      "name": "Stoneground Artisan Flour",
+      "quantity": 180,
+      "unit": "lb",
+      "price": 0.9,
+      "reorderPoint": 60,
+      "supplierId": "supplier-harvest",
+      "notes": "Blend of hard white wheat; base for every dough."
+    },
+    {
+      "id": "ingredient-butter",
+      "name": "European Butter 82%",
+      "quantity": 62,
+      "unit": "lb",
+      "price": 3.75,
+      "reorderPoint": 20,
+      "supplierId": "supplier-dairy-delight",
+      "notes": "Plugra-style butter for lamination."
+    },
+    {
+      "id": "ingredient-cream-cheese",
+      "name": "Cream Cheese Blocks",
+      "quantity": 48,
+      "unit": "lb",
+      "price": 2.9,
+      "reorderPoint": 18,
+      "supplierId": "supplier-dairy-delight",
+      "notes": "Used for frostings and fillings."
+    },
+    {
+      "id": "ingredient-brown-sugar",
+      "name": "Dark Brown Sugar",
+      "quantity": 80,
+      "unit": "lb",
+      "price": 1.2,
+      "reorderPoint": 30,
+      "supplierId": "supplier-harvest",
+      "notes": "Moist; perfect for sticky buns."
+    },
+    {
+      "id": "ingredient-cinnamon",
+      "name": "Saigon Cinnamon",
+      "quantity": 22,
+      "unit": "lb",
+      "price": 0.45,
+      "reorderPoint": 8,
+      "supplierId": "supplier-harvest",
+      "notes": "High oil content, strong aroma."
+    },
+    {
+      "id": "ingredient-yeast",
+      "name": "Instant Yeast",
+      "quantity": 15,
+      "unit": "lb",
+      "price": 0.25,
+      "reorderPoint": 6,
+      "supplierId": "supplier-harvest",
+      "notes": "Stored frozen for freshness."
+    }
+  ],
+  "menuItems": [
+    {
+      "id": "recipe-maple-rolls",
+      "name": "Maple Brown Sugar Rolls",
+      "price": 48,
+      "instructions": "Proof overnight; finish with maple drizzle.",
+      "ingredientsRequired": [
+        { "ingredientId": "ingredient-flour", "quantity": 4 },
+        { "ingredientId": "ingredient-butter", "quantity": 1.5 },
+        { "ingredientId": "ingredient-brown-sugar", "quantity": 1 },
+        { "ingredientId": "ingredient-cinnamon", "quantity": 0.3 }
+      ]
+    },
+    {
+      "id": "recipe-orange-knots",
+      "name": "Orange Cardamom Knots",
+      "price": 44,
+      "instructions": "Brush with spiced syrup before service.",
+      "ingredientsRequired": [
+        { "ingredientId": "ingredient-flour", "quantity": 3.5 },
+        { "ingredientId": "ingredient-butter", "quantity": 1.2 },
+        { "ingredientId": "ingredient-brown-sugar", "quantity": 0.7 }
+      ]
+    },
+    {
+      "id": "recipe-pistachio-swirl",
+      "name": "Roasted Pistachio Swirls",
+      "price": 52,
+      "instructions": "Top with cream cheese glaze + pistachio dust.",
+      "ingredientsRequired": [
+        { "ingredientId": "ingredient-flour", "quantity": 4.2 },
+        { "ingredientId": "ingredient-butter", "quantity": 1.6 },
+        { "ingredientId": "ingredient-cream-cheese", "quantity": 0.8 }
+      ]
+    }
+  ],
+  "productionHistory": [
+    {
+      "id": "history-sep-harvest",
+      "recipeName": "Maple Brown Sugar Rolls",
+      "date": "2025-09-14",
+      "quantity": 42,
+      "ingredientsUsed": [
+        { "name": "Stoneground Artisan Flour", "amount": 26 },
+        { "name": "European Butter 82%", "amount": 9 },
+        { "name": "Dark Brown Sugar", "amount": 7 }
+      ]
+    },
+    {
+      "id": "history-oct-market",
+      "recipeName": "Orange Cardamom Knots",
+      "date": "2025-10-04",
+      "quantity": 60,
+      "ingredientsUsed": [
+        { "name": "Stoneground Artisan Flour", "amount": 30 },
+        { "name": "European Butter 82%", "amount": 12 }
+      ]
+    },
+    {
+      "id": "history-nov-gift",
+      "recipeName": "Roasted Pistachio Swirls",
+      "date": "2025-11-18",
+      "quantity": 48,
+      "ingredientsUsed": [
+        { "name": "Stoneground Artisan Flour", "amount": 28 },
+        { "name": "Cream Cheese Blocks", "amount": 12 }
+      ]
+    }
+  ],
+  "orders": [
+    {
+      "id": "order-harvest-brunch",
+      "customerId": "customer-ramirez",
+      "customerName": "Elena Ramirez",
+      "channel": "Instagram",
+      "fulfillmentType": "Pickup",
+      "pickupDate": "2025-09-15",
+      "deliverySlotId": null,
+      "deposit": 75,
+      "notes": "Brunch trays for 12.",
+      "date": "2025-09-12",
+      "status": "Fulfilled",
+      "produced": true,
+      "items": [
+        { "itemId": "recipe-maple-rolls", "qty": 3 },
+        { "itemId": "recipe-orange-knots", "qty": 2 }
+      ]
+    },
+    {
+      "id": "order-market-booth",
+      "customerId": "customer-vyas",
+      "customerName": "Priya Vyas",
+      "channel": "Direct",
+      "fulfillmentType": "Delivery",
+      "pickupDate": "2025-10-05",
+      "deliverySlotId": null,
+      "deposit": 120,
+      "notes": "Mini buns for fall makers market.",
+      "date": "2025-10-03",
+      "status": "Fulfilled",
+      "produced": true,
+      "items": [
+        { "itemId": "recipe-maple-rolls", "qty": 4 },
+        { "itemId": "recipe-pistachio-swirl", "qty": 2 }
+      ]
+    },
+    {
+      "id": "order-farmers-collab",
+      "customerId": "customer-ortega",
+      "customerName": "Marco Ortega",
+      "channel": "Direct",
+      "fulfillmentType": "Pickup",
+      "pickupDate": "2025-10-23",
+      "deliverySlotId": null,
+      "deposit": 90,
+      "notes": "Sampler box for vendor collab.",
+      "date": "2025-10-21",
+      "status": "Produced",
+      "produced": true,
+      "items": [
+        { "itemId": "recipe-orange-knots", "qty": 3 },
+        { "itemId": "recipe-pistachio-swirl", "qty": 2 }
+      ]
+    },
+    {
+      "id": "order-friendsgiving",
+      "customerId": "customer-banks",
+      "customerName": "Harper Banks",
+      "channel": "Instagram",
+      "fulfillmentType": "Pickup",
+      "pickupDate": "2025-11-10",
+      "deliverySlotId": null,
+      "deposit": 60,
+      "notes": "Friendsgiving dessert bar.",
+      "date": "2025-11-05",
+      "status": "Fulfilled",
+      "produced": true,
+      "items": [
+        { "itemId": "recipe-maple-rolls", "qty": 2 },
+        { "itemId": "recipe-pistachio-swirl", "qty": 1 }
+      ]
+    },
+    {
+      "id": "order-atelier-launch",
+      "customerId": "customer-campbell",
+      "customerName": "Miles Campbell",
+      "channel": "Instagram",
+      "fulfillmentType": "Pickup",
+      "pickupDate": "2025-11-20",
+      "deliverySlotId": null,
+      "deposit": 110,
+      "notes": "Studio launch tasting.",
+      "date": "2025-11-18",
+      "status": "Produced",
+      "produced": false,
+      "items": [
+        { "itemId": "recipe-orange-knots", "qty": 4 },
+        { "itemId": "recipe-pistachio-swirl", "qty": 2 }
+      ]
+    },
+    {
+      "id": "order-holiday-preview",
+      "customerId": "customer-hsu",
+      "customerName": "Lana Hsu",
+      "channel": "Website",
+      "fulfillmentType": "Delivery",
+      "pickupDate": "2025-12-02",
+      "deliverySlotId": "slot-2025-12-02-pm",
+      "deposit": 150,
+      "notes": "Corporate tasting flight.",
+      "date": "2025-11-29",
+      "status": "Fulfilled",
+      "produced": true,
+      "items": [
+        { "itemId": "recipe-maple-rolls", "qty": 3 },
+        { "itemId": "recipe-pistachio-swirl", "qty": 3 }
+      ]
+    },
+    {
+      "id": "order-hanukkah-mix",
+      "customerId": "customer-ramirez",
+      "customerName": "Elena Ramirez",
+      "channel": "Instagram",
+      "fulfillmentType": "Pickup",
+      "pickupDate": "2025-12-07",
+      "deliverySlotId": "slot-2025-12-07-am",
+      "deposit": 80,
+      "notes": "Need nut-free glaze option.",
+      "date": "2025-12-02",
+      "status": "Pending",
+      "produced": false,
+      "items": [
+        { "itemId": "recipe-maple-rolls", "qty": 2 },
+        { "itemId": "recipe-orange-knots", "qty": 2 }
+      ]
+    },
+    {
+      "id": "order-winter-wedding",
+      "customerId": "customer-vyas",
+      "customerName": "Priya Vyas",
+      "channel": "Website",
+      "fulfillmentType": "Delivery",
+      "pickupDate": "2025-12-12",
+      "deliverySlotId": "slot-2025-12-12-pm",
+      "deposit": 200,
+      "notes": "Include tasting notes cards.",
+      "date": "2025-12-03",
+      "status": "Pending",
+      "produced": false,
+      "items": [
+        { "itemId": "recipe-pistachio-swirl", "qty": 5 },
+        { "itemId": "recipe-orange-knots", "qty": 3 }
+      ]
+    },
+    {
+      "id": "order-corporate-gift",
+      "customerId": "customer-hsu",
+      "customerName": "Lana Hsu",
+      "channel": "Website",
+      "fulfillmentType": "Delivery",
+      "pickupDate": "2025-12-16",
+      "deliverySlotId": "slot-2025-12-16-am",
+      "deposit": 320,
+      "notes": "20 gift boxes for Wondermade teams.",
+      "date": "2025-12-04",
+      "status": "Pending",
+      "produced": false,
+      "items": [
+        { "itemId": "recipe-maple-rolls", "qty": 6 },
+        { "itemId": "recipe-pistachio-swirl", "qty": 4 }
+      ]
+    }
+  ],
+  "customers": [
+    {
+      "id": "customer-ramirez",
+      "name": "Elena Ramirez",
+      "phone": "503-555-0198",
+      "email": "elena@fighouse.studio",
+      "channel": "Instagram",
+      "status": "Active",
+      "notes": "Interior stylist; recurring brunch orders."
+    },
+    {
+      "id": "customer-hsu",
+      "name": "Lana Hsu",
+      "phone": "503-555-0133",
+      "email": "lana@wondermade.co",
+      "channel": "Website",
+      "status": "Active",
+      "notes": "Corporate gifting manager."
+    },
+    {
+      "id": "customer-campbell",
+      "name": "Miles Campbell",
+      "phone": "503-555-0187",
+      "email": "miles@ateliernorth.com",
+      "channel": "Direct",
+      "status": "Active",
+      "notes": "Hosts seasonal workshops."
+    },
+    {
+      "id": "customer-banks",
+      "name": "Harper Banks",
+      "phone": "503-555-0152",
+      "email": "harper@wildcurrent.co",
+      "channel": "Instagram",
+      "status": "Active",
+      "notes": "Photo studio owner."
+    },
+    {
+      "id": "customer-ortega",
+      "name": "Marco Ortega",
+      "phone": "503-555-0120",
+      "email": "marco@riverstonebuild.com",
+      "channel": "Direct",
+      "status": "Active",
+      "notes": "Catered job sites quarterly."
+    },
+    {
+      "id": "customer-vyas",
+      "name": "Priya Vyas",
+      "phone": "503-555-0170",
+      "email": "hello@priyav.com",
+      "channel": "Instagram",
+      "status": "Active",
+      "notes": "Event planner; detail oriented."
+    }
+  ],
+  "suppliers": [
+    {
+      "id": "supplier-harvest",
+      "name": "Harvest Collective Grains",
+      "contactName": "Danielle Ruiz",
+      "phone": "503-555-0141",
+      "email": "orders@harvestcollective.com",
+      "leadTimeDays": 5,
+      "terms": "Net 15",
+      "notes": "Primary flour + sugar vendor."
+    },
+    {
+      "id": "supplier-dairy-delight",
+      "name": "Dairy Delight Creamery",
+      "contactName": "Mikel Tan",
+      "phone": "503-555-0174",
+      "email": "hello@dairydelight.co",
+      "leadTimeDays": 4,
+      "terms": "Net 10",
+      "notes": "Butter and cream cheese contracts."
+    },
+    {
+      "id": "supplier-packaging-hub",
+      "name": "Packaging Hub NW",
+      "contactName": "Priya Khanna",
+      "phone": "503-555-0108",
+      "email": "pkhanna@packaginghub.com",
+      "leadTimeDays": 7,
+      "terms": "Net 30",
+      "notes": "Small-batch boxes and inserts."
+    }
+  ],
+  "purchaseOrders": [
+    {
+      "id": "po-oct-butter",
+      "supplierId": "supplier-dairy-delight",
+      "expectedDate": "2025-10-12",
+      "status": "Received",
+      "notes": "Restock butter + cream cheese.",
+      "items": [
+        { "ingredientId": "ingredient-butter", "quantity": 40 },
+        { "ingredientId": "ingredient-cream-cheese", "quantity": 24 }
+      ]
+    },
+    {
+      "id": "po-dec-cream",
+      "supplierId": "supplier-dairy-delight",
+      "expectedDate": "2025-12-09",
+      "status": "Sent",
+      "notes": "Holiday cushion order.",
+      "items": [
+        { "ingredientId": "ingredient-butter", "quantity": 30 },
+        { "ingredientId": "ingredient-cream-cheese", "quantity": 30 }
+      ]
+    }
+  ],
+  "inventoryMovements": [
+    {
+      "id": "move-oct-butter-restock",
+      "ingredientId": "ingredient-butter",
+      "quantity": 40,
+      "type": "restock",
+      "note": "PO #po-oct-butter",
+      "date": "2025-10-12"
+    },
+    {
+      "id": "move-nov-flour-usage",
+      "ingredientId": "ingredient-flour",
+      "quantity": -35,
+      "type": "usage",
+      "note": "Friendsgiving prep",
+      "date": "2025-11-08"
+    },
+    {
+      "id": "move-nov-sugar-usage",
+      "ingredientId": "ingredient-brown-sugar",
+      "quantity": -18,
+      "type": "usage",
+      "note": "Holiday preview boxes",
+      "date": "2025-11-29"
+    },
+    {
+      "id": "move-dec-flour-restock",
+      "ingredientId": "ingredient-flour",
+      "quantity": 60,
+      "type": "restock",
+      "note": "Quick top-up from Harvest Collective",
+      "date": "2025-12-03"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-holiday-boxes",
+      "title": "Assemble holiday tasting boxes",
+      "dueDate": "2025-12-06",
+      "category": "production",
+      "status": "open",
+      "notes": "Need 14 boxes ribboned."
+    },
+    {
+      "id": "task-hanukkah-labels",
+      "title": "Print nut-free labels",
+      "dueDate": "2025-12-07",
+      "category": "operations",
+      "status": "open",
+      "notes": "Tie to order-hanukkah-mix."
+    },
+    {
+      "id": "task-wedding-samples",
+      "title": "Prep wedding tasting samples",
+      "dueDate": "2025-12-11",
+      "category": "production",
+      "status": "open",
+      "notes": "Deliver to Priya by noon."
+    },
+    {
+      "id": "task-gifting-followup",
+      "title": "Confirm corporate gift addresses",
+      "dueDate": "2025-12-15",
+      "category": "crm",
+      "status": "open",
+      "notes": "Need final spreadsheet from Lana."
+    }
+  ],
+  "communications": [
+    {
+      "id": "comm-oct-lana",
+      "customerId": "customer-hsu",
+      "channel": "Email",
+      "subject": "Holiday tasting flight",
+      "message": "Shared menu options + pricing recap.",
+      "date": "2025-11-18T10:20:00-08:00"
+    },
+    {
+      "id": "comm-nov-elena",
+      "customerId": "customer-ramirez",
+      "channel": "SMS",
+      "subject": "Nut allergy follow up",
+      "message": "Confirmed glaze swap for son.",
+      "date": "2025-11-30T14:05:00-08:00"
+    },
+    {
+      "id": "comm-dec-priya",
+      "customerId": "customer-vyas",
+      "channel": "Instagram",
+      "subject": "Winter wedding inspo",
+      "message": "Sent palette ideas + tasting notes.",
+      "date": "2025-12-04T09:42:00-08:00"
+    }
+  ],
+  "deliverySlots": [
+    {
+      "id": "slot-2025-12-02-pm",
+      "date": "2025-12-02",
+      "window": "16:00-18:00",
+      "capacity": 6,
+      "committedOrders": ["order-holiday-preview"]
+    },
+    {
+      "id": "slot-2025-12-07-am",
+      "date": "2025-12-07",
+      "window": "08:00-10:00",
+      "capacity": 4,
+      "committedOrders": ["order-hanukkah-mix"]
+    },
+    {
+      "id": "slot-2025-12-12-pm",
+      "date": "2025-12-12",
+      "window": "16:00-18:00",
+      "capacity": 6,
+      "committedOrders": ["order-winter-wedding"]
+    },
+    {
+      "id": "slot-2025-12-16-am",
+      "date": "2025-12-16",
+      "window": "10:00-12:00",
+      "capacity": 4,
+      "committedOrders": ["order-corporate-gift"]
+    }
+  ],
+  "marketingCampaigns": [
+    {
+      "id": "campaign-harvest-market",
+      "name": "Harvest Market Pop-up",
+      "channel": "Instagram",
+      "startDate": "2025-09-01",
+      "endDate": "2025-10-01",
+      "budget": 120,
+      "notes": "Drove makers market traffic."
+    },
+    {
+      "id": "campaign-holiday-gifting",
+      "name": "Holiday Gifting Guide",
+      "channel": "Email",
+      "startDate": "2025-11-10",
+      "endDate": "2025-12-20",
+      "budget": 90,
+      "notes": "Warm list of loyal clients."
+    }
+  ],
+  "productionSchedule": [
+    {
+      "id": "batch-dec-hanukkah",
+      "recipeId": "recipe-maple-rolls",
+      "quantity": 36,
+      "scheduleDate": "2025-12-06",
+      "status": "planned",
+      "linkedOrderIds": ["order-hanukkah-mix"]
+    },
+    {
+      "id": "batch-dec-wedding",
+      "recipeId": "recipe-pistachio-swirl",
+      "quantity": 48,
+      "scheduleDate": "2025-12-10",
+      "status": "in-progress",
+      "linkedOrderIds": ["order-winter-wedding"]
+    },
+    {
+      "id": "batch-dec-gifting",
+      "recipeId": "recipe-orange-knots",
+      "quantity": 60,
+      "scheduleDate": "2025-12-14",
+      "status": "planned",
+      "linkedOrderIds": ["order-corporate-gift"]
+    }
+  ]
+}

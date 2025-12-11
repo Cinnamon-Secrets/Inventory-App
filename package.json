@@ -5,7 +5,8 @@
     "main": "main.js",
     "scripts": {
         "start": "electron .",
-        "pack": "electron-builder"
+        "pack": "electron-builder",
+        "dist:win": "electron-builder --win nsis"
     },
     "devDependencies": {
         "electron": "^23.1.0",
@@ -14,13 +15,45 @@
     "build": {
         "appId": "com.yourdomain.cinnamonsecrets",
         "productName": "Cinnamon Secrets",
+        "directories": {
+            "output": "dist",
+            "buildResources": "build"
+        },
+        "files": [
+            "**/*",
+            "!dist/**/*",
+            "!node_modules/.cache/**/*"
+        ],
+        "extraResources": [
+            "demo-snapshot.json"
+        ],
         "mac": {
             "category": "public.app-category.utilities",
             "icon": "build/logo_mac.icns"
         },
         "win": {
-            "target": "nsis",
+            "target": [
+                {
+                    "target": "nsis",
+                    "arch": [
+                        "x64"
+                    ]
+                }
+            ],
             "icon": "build/logo_win.ico"
+        },
+        "nsis": {
+            "oneClick": false,
+            "perMachine": false,
+            "allowElevation": true,
+            "allowToChangeInstallationDirectory": true,
+            "createDesktopShortcut": true,
+            "createStartMenuShortcut": true,
+            "shortcutName": "Cinnamon Secrets",
+            "artifactName": "Cinnamon Secrets Setup ${version}.${ext}"
         }
+    },
+    "dependencies": {
+        "better-sqlite3": "^12.5.0"
     }
 }

@@ -1,283 +1,571 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <title>Cinnamon Secrets Bakery Management</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <title>Cinnamon Secrets • Bakery Operations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Space+Grotesk:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
   <div id="toast" class="toast">Saved successfully!</div>
-  <header>
-    <h1>Cinnamon Secrets 🍰</h1>
-  </header>
-  <nav>
-    <button id="nav-ingredients">Ingredients</button>
-    <button id="nav-recipes">Recipes</button>
-    <button id="nav-production">Production</button>
-    <button id="nav-dashboard">Dashboard</button>
-    <button id="nav-orders">Orders</button>
-    <button id="nav-customers">Customers</button>
-    <button id="nav-calendar">Calendar</button>
-  </nav>
-  <main>
-    <!-- Ingredients Section -->
-    <section id="ingredients-section" class="section">
-      <h2>Ingredients 🥣</h2>
-      <button id="add-ingredient-btn">Add Ingredient</button>
-      <div id="low-stock-alert" style="display:none;color:#b30000;background:#fff0f0;padding:10px;border-radius:8px;margin-bottom:10px;"></div>
-      <table id="ingredients-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Unit</th>
-            <th>Price/unit</th>
-            <th>Quantity</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
-
-    <!-- Ingredient Modal (Add/Edit) -->
-    <div id="ingredient-modal" class="modal" style="display:none">
-      <div class="modal-content">
-        <span id="close-ingredient-modal" class="close">&times;</span>
-        <h2 id="ingredient-modal-title">Add/Edit Ingredient</h2>
-        <form id="ingredient-modal-form">
-          <input type="hidden" id="ingredient-id">
-          <label for="ingredient-name">Name</label>
-          <input type="text" id="ingredient-name" required>
-          <label for="ingredient-quantity">Quantity</label>
-          <input type="number" id="ingredient-quantity" min="0" required>
-          <label for="ingredient-unit">Unit</label>
-          <input type="text" id="ingredient-unit" placeholder="e.g. kg, g, L, pcs">
-          <label for="ingredient-price">Price per Unit ($)</label>
-          <input type="number" id="ingredient-price" min="0" step="0.01" required>
-          <div style="text-align:right;margin-top:10px;">
-            <button type="submit" id="save-ingredient-modal-btn">Save Ingredient</button>
-          </div>
-        </form>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">CS</div>
+        <div>
+          <h1>Cinnamon Secrets</h1>
+          <p>Home bakery command center</p>
+        </div>
       </div>
-    </div>
+      <nav class="sidebar-nav">
+        <button class="nav-link active" data-target="dashboard-view">Dashboard</button>
+        <button class="nav-link" data-target="inventory-view">Inventory</button>
+        <button class="nav-link" data-target="production-view">Production</button>
+        <button class="nav-link" data-target="orders-view">Orders</button>
+        <button class="nav-link" data-target="customers-view">Customers</button>
+        <button class="nav-link" data-target="suppliers-view">Suppliers</button>
+        <button class="nav-link" data-target="calendar-view">Calendar</button>
+        <button class="nav-link" data-target="archives-view">Archives</button>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="new-task-btn" class="ghost-btn">+ Quick Task</button>
+        <button id="export-report" class="ghost-btn">⬇ Monthly CSV</button>
+        <button id="reset-data" class="ghost-btn danger">Reset Workspace</button>
+      </div>
+    </aside>
+    <main class="content">
+      <header class="main-header">
+        <div>
+          <p class="eyebrow">Single-member cottage bakery • Cinnamon rolls + sweets</p>
+          <h2 id="view-title">Dashboard</h2>
+          <p class="subtitle">Track production, commitments, and marketing from one calm surface.</p>
+        </div>
+        <div class="header-actions">
+          <button id="quick-order-btn">New Order</button>
+          <button id="quick-batch-btn" class="secondary">Schedule Batch</button>
+        </div>
+      </header>
 
-    <!-- Confirmation Modal -->
-    <div id="confirm-modal" class="modal" style="display:none">
-      <div class="modal-content">
-        <span id="close-confirm-modal" class="close">&times;</span>
-        <h2 id="confirm-modal-title">Are you sure?</h2>
-        <p id="confirm-modal-message"></p>
+      <section id="dashboard-view" class="view active">
+        <div class="metric-grid" id="metric-grid"></div>
+        <div class="grid two-column dashboard-flex">
+          <div class="panel performance-panel">
+            <div class="panel-header">
+              <h3>Performance</h3>
+              <div class="panel-actions">
+                <select id="kpi-range">
+                  <option value="7">7 Days</option>
+                  <option value="30" selected>30 Days</option>
+                  <option value="90">90 Days</option>
+                  <option value="all">All Time</option>
+                </select>
+              </div>
+            </div>
+            <div class="chart-grid">
+              <div class="chart-card">
+                <h4>Money Flow</h4>
+                <canvas id="money-chart"></canvas>
+              </div>
+              <div class="chart-card">
+                <h4>Channel Mix</h4>
+                <canvas id="channel-chart"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="panel panel-compact">
+            <div class="panel-header">
+              <h3>Upcoming 7 Days</h3>
+              <button id="print-run-sheet" class="link-btn">Print run sheet</button>
+            </div>
+            <div id="upcoming-list" class="list-block"></div>
+          </div>
+        </div>
+        <div class="grid mini-chart-grid">
+          <div class="panel chart-panel">
+            <div class="panel-header">
+              <h3>Ingredient Usage</h3>
+            </div>
+            <canvas id="ingredient-usage-chart"></canvas>
+          </div>
+          <div class="panel chart-panel">
+            <div class="panel-header">
+              <h3>Recipe Mix</h3>
+            </div>
+            <canvas id="recipe-chart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section id="inventory-view" class="view">
+        <div class="section-header">
+          <div>
+            <h3>Inventory & Costing</h3>
+            <p>Live visibility into stock, suppliers, and movement history.</p>
+          </div>
+          <div class="actions">
+            <button id="add-ingredient-btn">Add Ingredient</button>
+            <button id="add-recipe-btn" class="secondary">Add Recipe</button>
+            <button id="create-po-btn" class="secondary">New Purchase Order</button>
+          </div>
+        </div>
+        <div id="low-stock-alert" class="alert"></div>
+        <div class="grid two-column stack">
+          <div class="panel">
+            <table id="ingredients-table">
+              <thead>
+                <tr>
+                  <th>Ingredient</th>
+                  <th>On Hand</th>
+                  <th>Unit Cost</th>
+                  <th>Reorder</th>
+                  <th>Supplier</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <h4>Purchase Orders</h4>
+              <button id="po-filter-open" class="pill">Open</button>
+            </div>
+            <div id="purchase-order-list" class="list-block"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <h4>Inventory Movements</h4>
+            <button id="log-adjustment-btn" class="secondary">Log Adjustment</button>
+          </div>
+          <div id="inventory-movements-log" class="timeline"></div>
+        </div>
+      </section>
+
+      <section id="production-view" class="view">
+        <div class="section-header">
+          <div>
+            <h3>Production Planner</h3>
+            <p>Convert orders into intentional bake blocks.</p>
+          </div>
+          <div class="actions">
+            <button id="schedule-batch-btn">Schedule Batch</button>
+          </div>
+        </div>
+        <div class="grid two-column">
+          <div class="panel">
+            <h4>Pending Batches</h4>
+            <div id="production-board" class="kanban"></div>
+          </div>
+          <div class="panel">
+            <h4>Order Queue</h4>
+            <div id="unproduced-orders-list" class="list-block"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="orders-view" class="view">
+        <div class="section-header">
+          <div>
+            <h3>Orders & Commitments</h3>
+            <p>Channel tracking, deposits, and pickup slots.</p>
+          </div>
+          <div class="actions">
+            <button id="new-order-btn">Add Order</button>
+          </div>
+        </div>
+        <div class="filters">
+          <input type="text" id="order-search" placeholder="Search by name, flavor, or date" />
+          <select id="order-status-filter">
+            <option value="">All Statuses</option>
+            <option value="Pending">Pending</option>
+            <option value="Produced">Produced</option>
+            <option value="Fulfilled">Fulfilled</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+          <select id="order-channel-filter">
+            <option value="">All Channels</option>
+            <option value="Direct">Direct</option>
+            <option value="Instagram">Instagram</option>
+            <option value="Website">Website</option>
+          </select>
+        </div>
+        <table id="orders-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Qty</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Fulfillment</th>
+              <th>Pickup Slot</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div class="panel">
+          <h4>Order Timeline</h4>
+          <div id="order-timeline" class="timeline"></div>
+        </div>
+      </section>
+
+      <section id="customers-view" class="view">
+        <div class="section-header">
+          <div>
+            <h3>Customers & CRM</h3>
+            <p>Track conversations, loyalty, and favorite flavors.</p>
+          </div>
+          <div class="actions">
+            <button id="log-communication-btn" class="secondary">Log Message</button>
+          </div>
+        </div>
+        <div class="grid two-column stack">
+          <div class="panel">
+            <div class="filters">
+              <input type="text" id="customer-search" placeholder="Search by name or tag" />
+              <select id="customer-channel-filter">
+                <option value="">All Channels</option>
+                <option value="Direct">Direct</option>
+                <option value="Instagram">Instagram</option>
+                <option value="Website">Website</option>
+              </select>
+            </div>
+            <table id="customers-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Contact</th>
+                  <th>Channel</th>
+                  <th>Orders</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="panel" id="customer-detail-panel">
+            <h4>Customer Detail</h4>
+            <form id="customer-form">
+              <input type="hidden" id="customer-id" />
+              <div class="form-grid">
+                <label>Name<input type="text" id="customer-name" required /></label>
+                <label>Phone<input type="text" id="customer-phone" /></label>
+                <label>Email<input type="email" id="customer-email" /></label>
+                <label>Channel
+                  <select id="customer-channel">
+                    <option value="Direct">Direct</option>
+                    <option value="Instagram">Instagram</option>
+                    <option value="Website">Website</option>
+                  </select>
+                </label>
+                <label>Notes<textarea id="customer-notes"></textarea></label>
+              </div>
+              <button type="submit">Save Customer</button>
+            </form>
+            <div class="panel" id="customer-timeline">
+              <h5>Touchpoints</h5>
+              <div id="communications-log" class="timeline"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="suppliers-view" class="view">
+        <div class="section-header">
+          <div>
+            <h3>Suppliers & Purchasing</h3>
+            <p>Lead times, order history, and contact details.</p>
+          </div>
+          <div class="actions">
+            <button id="add-supplier-btn">Add Supplier</button>
+          </div>
+        </div>
+        <div class="grid two-column stack">
+          <div class="panel">
+            <table id="suppliers-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Contact</th>
+                  <th>Lead Time</th>
+                  <th>Terms</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="panel">
+            <h4>Supplier Notes</h4>
+            <div id="supplier-detail"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="calendar-view" class="view">
+        <div class="section-header">
+          <div>
+            <h3>Calendar</h3>
+            <p>Orders, deliveries, and production blocks.</p>
+          </div>
+          <div class="actions">
+            <button id="prev-month">◀</button>
+            <button id="next-month">▶</button>
+          </div>
+        </div>
+        <div id="calendar-board" class="panel calendar-panel"></div>
+      </section>
+
+      <section id="archives-view" class="view">
+        <div class="section-header">
+          <div>
+            <h3>Archives & Versioning</h3>
+            <p>Automatic SQLite backups for peace of mind.</p>
+          </div>
+          <div class="actions">
+            <button id="manual-archive-btn">Create Snapshot</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div id="archive-list" class="list-block"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <h4>Import / Export</h4>
+            <div class="panel-actions">
+              <button id="export-data">Export JSON</button>
+              <button id="import-data" class="secondary">Import JSON</button>
+            </div>
+          </div>
+          <input type="file" id="import-file" accept=".json" hidden />
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Shared Modals -->
+  <div id="loading-modal" class="modal" hidden>
+    <div class="modal-content centered">
+      <div class="loader"></div>
+      <p>Loading...</p>
+    </div>
+  </div>
+
+  <div id="confirm-modal" class="modal" hidden>
+    <div class="modal-content">
+      <h3 id="confirm-modal-title">Confirm</h3>
+      <p id="confirm-modal-message">Are you sure?</p>
+      <div class="modal-actions">
         <button id="confirm-modal-yes">Yes</button>
-        <button id="confirm-modal-no">No</button>
-      </div>
-    </div>
-
-    <!-- Loading Modal -->
-    <div id="loading-modal" class="modal" style="display:none;align-items:center;justify-content:center;">
-      <div class="modal-content" style="text-align:center;">
-        <div class="loader"></div>
-        <p>Loading...</p>
-      </div>
-    </div>
-
-    <!-- Recipes Section -->
-    <section id="recipes-section" class="section" style="display:none">
-      <h2>Recipes 🍪</h2>
-      <button id="add-recipe-btn">Add Recipe</button>
-      <table id="menu-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Ingredients</th>
-            <th>Instructions</th>
-            <th>Cost</th>
-            <th>Price</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
-
-    <!-- Recipe Modal (Add/Edit) -->
-    <div id="recipe-modal" class="modal" style="display:none">
-      <div class="modal-content">
-        <span id="close-recipe-modal" class="close">&times;</span>
-        <h2 id="recipe-modal-title">Add/Edit Recipe</h2>
-        <form id="recipe-modal-form">
-          <input type="hidden" id="recipe-modal-id">
-          <label for="recipe-modal-name">Recipe Name</label>
-          <input type="text" id="recipe-modal-name" required>
-          <label for="recipe-modal-instructions">Instructions</label>
-          <textarea id="recipe-modal-instructions" name="recipe-modal-instructions" rows="3" required></textarea>
-          <div id="recipe-modal-ingredients-container">
-            <h3>Ingredients Required</h3>
-          </div>
-          <button type="button" id="add-recipe-modal-ingredient" style="margin:8px 0;">Add Ingredient</button>
-          <label for="recipe-modal-price"><br>Price ($)</label>
-          <input type="number" id="recipe-modal-price" min="0" step="0.01" required>
-          <div id="recipe-modal-cost-display" style="margin:8px 0;">Cost to Make: $0.00</div>
-          <div style="text-align:right;margin-top:10px;">
-            <button type="submit" id="save-recipe-modal-btn">Save Recipe</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Production Section -->
-    <section id="production-section" class="section" style="display:none">
-      <h2>Production 🏭</h2>
-      <div id="menu-list"></div>
-      <div id="unproduced-orders-list"></div>
-      <div id="production-details" style="display:none">
-        <h3>Order Details</h3>
-        <p id="production-order-info"></p>
-        <div id="production-recipe-info"></div>
-        <button id="confirm-production">Confirm Production</button>
-        <button id="back-to-production">Back</button>
-      </div>
-    </section>
-
-    <!-- Dashboard Section -->
-    <section id="dashboard-section" class="section" style="display:none">
-      <h2>Dashboard 📊</h2>
-      <div class="dashboard-charts">
-        <div class="dashboard-chart"><canvas id="ingredient-chart"></canvas></div>
-        <div class="dashboard-chart"><canvas id="recipe-chart"></canvas></div>
-        <div class="dashboard-chart"><canvas id="money-chart"></canvas></div>
-        <div class="dashboard-chart"><canvas id="ingredient-usage-chart"></canvas></div>
-      </div>
-      <div style="margin: 20px 0;">
-        <button id="export-data">Export Data</button>
-        <input type="file" id="import-file" style="display:none" accept=".json"/>
-        <button id="import-data">Import Data</button>
-        <button id="reset-data" style="margin-top:20px;background:#ff4080;">Reset All Data</button>
-        <button id="export-report" style="margin-top:20px;background:#80ff80;">Export Monthly Report</button>
-      </div>
-    </section>
-
-    <!-- Orders Section -->
-    <section id="orders-section" class="section" style="display:none">
-      <h2>Customer Orders 🧾</h2>
-      <form id="order-form">
-        <label for="order-customer">Customer:</label>
-        <select id="order-customer"></select>
-        <div id="order-items-container"></div>
-        <button type="button" id="add-order-item">Add Another Item</button>
-        <button type="submit">Add Order</button>
-      </form>
-      <input type="text" id="order-search" placeholder="Search orders by customer, item, or date..." style="margin:10px 0;width:100%;padding:8px;">
-      <select id="order-status-filter" style="margin:10px 0;">
-        <option value="">All Statuses</option>
-        <option value="Pending">Pending</option>
-        <option value="Produced">Produced</option>
-        <option value="Fulfilled">Fulfilled</option>
-      </select>
-      <table id="orders-table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Customer</th>
-            <th>Item</th>
-            <th>Qty</th>
-            <th>Total</th>
-            <th>Status</th>
-            <th>Produced?</th>
-            <th>Pickup Date</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
-
-    <!-- Edit Order Modal -->
-    <div id="edit-order-modal" class="modal" style="display:none">
-      <div class="modal-content">
-        <span id="close-edit-order-modal" class="close">&times;</span>
-        <h2>Edit Order</h2>
-        <form id="edit-order-form">
-          <input type="hidden" id="edit-order-id">
-          <label>Customer:
-            <select id="edit-order-customer-select" required></select>
-            <input type="text" id="edit-order-customer-name" placeholder="Enter name or leave blank for Walk-in" style="display:none;margin-top:5px;">
-          </label><br>
-          <label>Pickup Date:
-            <input type="date" id="edit-order-pickup-date" required>
-            <span style="font-size:0.9em;color:#888;">(Must be at least 48 hours from now)</span>
-          </label><br>
-          <div id="edit-order-items-container"></div>
-          <button type="button" id="edit-add-order-item">Add Another Item</button>
-          <button type="submit">Save Changes</button>
-        </form>
-      </div>
-    </div>
-
-    <!-- Customers Section -->
-    <section id="customers-section" class="section" style="display:none">
-      <h2>Customers 👥</h2>
-      <input type="text" id="customer-search" placeholder="Search customers by name, phone, or email..." style="margin:10px 0;width:100%;padding:8px;">
-      <form id="customer-form">
-        <input type="hidden" id="customer-id">
-        <label for="customer-name">Name:</label>
-        <input type="text" id="customer-name" required>
-        <label for="customer-phone">Phone:</label>
-        <input type="text" id="customer-phone">
-        <label for="customer-email">Email:</label>
-        <input type="email" id="customer-email">
-        <button type="submit">Save Customer</button>
-      </form>
-      <table id="customers-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Email</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
-
-    <!-- Calendar Section -->
-    <section id="calendar-section" class="section" style="display:none">
-      <h2>Calendar 📅</h2>
-      <div id="calendar-view"></div>
-    </section>
-  </main>
-
-  <!-- Modal for production quantity input -->
-  <div id="quantity-modal" class="modal" style="display:none">
-    <div class="modal-content">
-      <span id="close-modal" class="close">&times;</span>
-      <h2>Enter Quantity to Produce</h2>
-      <input type="number" id="production-quantity" min="1" required>
-      <button id="calculate-production">Calculate</button>
-    </div>
-  </div>
-
-  <div id="restock-modal" class="modal" style="display:none;align-items:center;justify-content:center;z-index:1000;">
-    <div class="modal-content">
-      <h3>Restock Ingredient</h3>
-      <div id="restock-modal-name" style="margin-bottom:10px;"></div>
-      <input type="number" id="restock-amount" min="1" value="10" style="width:100%;margin-bottom:10px;">
-      <div style="text-align:right;">
-        <button id="restock-confirm">Restock</button>
-        <button id="restock-cancel">Cancel</button>
+        <button id="confirm-modal-no" class="secondary">No</button>
       </div>
     </div>
   </div>
 
-  <div id="walkin-modal" class="modal" style="display:none;align-items:center;justify-content:center;z-index:1000;">
+  <div id="ingredient-modal" class="modal" hidden>
     <div class="modal-content">
-      <h3>Walk-in Customer Name</h3>
-      <input type="text" id="walkin-name" placeholder="Enter name or leave blank for 'Walk-in'" style="width:100%;margin-bottom:10px;">
-      <div style="text-align:right;">
-        <button id="walkin-confirm">OK</button>
-        <button id="walkin-cancel">Cancel</button>
-      </div>
+      <h3 id="ingredient-modal-title">Ingredient</h3>
+      <form id="ingredient-modal-form" class="form-grid">
+        <input type="hidden" id="ingredient-id" />
+        <label>Name<input type="text" id="ingredient-name" required /></label>
+        <label>Quantity<input type="number" id="ingredient-quantity" min="0" required /></label>
+        <label>Unit<input type="text" id="ingredient-unit" placeholder="g, lbs, pcs" /></label>
+        <label>Unit Cost ($)<input type="number" id="ingredient-price" step="0.01" required /></label>
+        <label>Reorder Point<input type="number" id="ingredient-reorder" min="0" /></label>
+        <label>Supplier<select id="ingredient-supplier"></select></label>
+        <label>Notes<textarea id="ingredient-notes"></textarea></label>
+        <div class="modal-actions">
+          <button type="submit">Save</button>
+          <button type="button" class="secondary" data-close="ingredient-modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="recipe-modal" class="modal" hidden>
+    <div class="modal-content">
+      <h3 id="recipe-modal-title">Recipe</h3>
+      <form id="recipe-modal-form" class="form-grid">
+        <input type="hidden" id="recipe-modal-id" />
+        <label>Name<input type="text" id="recipe-modal-name" required /></label>
+        <label>Price<input type="number" id="recipe-modal-price" step="0.01" required /></label>
+        <label>Instructions<textarea id="recipe-modal-instructions" rows="3"></textarea></label>
+        <div id="recipe-modal-ingredients-container" class="stack-list">
+          <div class="stack-header">
+            <h4>Ingredients</h4>
+            <button type="button" id="add-recipe-modal-ingredient">+ Ingredient</button>
+          </div>
+        </div>
+        <div id="recipe-modal-cost-display" class="stat">Cost to make: $0.00</div>
+        <div class="modal-actions">
+          <button type="submit">Save Recipe</button>
+          <button type="button" class="secondary" data-close="recipe-modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="order-modal" class="modal" hidden>
+    <div class="modal-content large">
+      <h3 id="order-modal-title">Order</h3>
+      <form id="order-form" class="form-grid">
+        <input type="hidden" id="order-id" />
+        <label>Customer<select id="order-customer-select"></select></label>
+        <label>Custom Name<input type="text" id="order-customer-name" placeholder="Walk-in or new" /></label>
+        <label>Channel<select id="order-channel"></select></label>
+        <label>Fulfillment<select id="order-fulfillment"></select></label>
+        <label>Pickup Date<input type="date" id="order-pickup-date" required /></label>
+        <label>Pickup Slot<select id="order-slot"></select></label>
+        <label>Deposit ($)<input type="number" id="order-deposit" step="0.01" /></label>
+        <label>Notes<textarea id="order-notes"></textarea></label>
+        <div id="order-items-container" class="stack-list"></div>
+        <button type="button" id="add-order-item" class="secondary">+ Add Item</button>
+        <div class="modal-actions">
+          <button type="submit">Save Order</button>
+          <button type="button" class="secondary" data-close="order-modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="task-modal" class="modal" hidden>
+    <div class="modal-content">
+      <h3>Task</h3>
+      <form id="task-form" class="form-grid">
+        <input type="hidden" id="task-id" />
+        <label>Title<input type="text" id="task-title" required /></label>
+        <label>Due Date<input type="date" id="task-due-date" /></label>
+        <label>Category<select id="task-category">
+            <option value="production">Production</option>
+            <option value="inventory">Inventory</option>
+            <option value="crm">CRM</option>
+          </select></label>
+        <label>Status<select id="task-status">
+            <option value="open">Open</option>
+            <option value="in-progress">In Progress</option>
+            <option value="done">Done</option>
+          </select></label>
+        <label>Notes<textarea id="task-notes"></textarea></label>
+        <div class="modal-actions">
+          <button type="submit">Save Task</button>
+          <button type="button" class="secondary" data-close="task-modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="communication-modal" class="modal" hidden>
+    <div class="modal-content">
+      <h3>Log Communication</h3>
+      <form id="communication-form" class="form-grid">
+        <label>Customer<select id="communication-customer"></select></label>
+        <label>Channel<select id="communication-channel">
+            <option value="Email">Email</option>
+            <option value="SMS">SMS</option>
+            <option value="Instagram DM">Instagram DM</option>
+          </select></label>
+        <label>Subject<input type="text" id="communication-subject" /></label>
+        <label>Message<textarea id="communication-message"></textarea></label>
+        <div class="modal-actions">
+          <button type="submit">Log Touchpoint</button>
+          <button type="button" class="secondary" data-close="communication-modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="supplier-modal" class="modal" hidden>
+    <div class="modal-content">
+      <h3>Supplier</h3>
+      <form id="supplier-form" class="form-grid">
+        <input type="hidden" id="supplier-id" />
+        <label>Name<input type="text" id="supplier-name" required /></label>
+        <label>Contact<input type="text" id="supplier-contact" /></label>
+        <label>Phone<input type="text" id="supplier-phone" /></label>
+        <label>Email<input type="email" id="supplier-email" /></label>
+        <label>Lead Time (days)<input type="number" id="supplier-lead-time" min="0" /></label>
+        <label>Terms<input type="text" id="supplier-terms" /></label>
+        <label>Notes<textarea id="supplier-notes"></textarea></label>
+        <div class="modal-actions">
+          <button type="submit">Save Supplier</button>
+          <button type="button" class="secondary" data-close="supplier-modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="purchase-order-modal" class="modal" hidden>
+    <div class="modal-content large">
+      <h3>Purchase Order</h3>
+      <form id="purchase-order-form" class="form-grid">
+        <input type="hidden" id="purchase-order-id" />
+        <label>Supplier<select id="po-supplier"></select></label>
+        <label>Expected Date<input type="date" id="po-expected-date" /></label>
+        <label>Status<select id="po-status">
+            <option value="Draft">Draft</option>
+            <option value="Submitted">Submitted</option>
+            <option value="Received">Received</option>
+          </select></label>
+        <div id="po-items-container" class="stack-list"></div>
+        <button type="button" id="add-po-item" class="secondary">+ Ingredient</button>
+        <label>Notes<textarea id="po-notes"></textarea></label>
+        <div class="modal-actions">
+          <button type="submit">Save PO</button>
+          <button type="button" class="secondary" data-close="purchase-order-modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="adjustment-modal" class="modal" hidden>
+    <div class="modal-content">
+      <h3>Inventory Adjustment</h3>
+      <form id="adjustment-form" class="form-grid">
+        <label>Ingredient<select id="adjustment-ingredient"></select></label>
+        <label>Quantity<input type="number" id="adjustment-quantity" /></label>
+        <label>Type<select id="adjustment-type">
+            <option value="restock">Restock</option>
+            <option value="usage">Usage</option>
+            <option value="adjustment">Adjustment</option>
+          </select></label>
+        <label>Note<textarea id="adjustment-note"></textarea></label>
+        <div class="modal-actions">
+          <button type="submit">Record Movement</button>
+          <button type="button" class="secondary" data-close="adjustment-modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="batch-modal" class="modal" hidden>
+    <div class="modal-content">
+      <h3>Schedule Batch</h3>
+      <form id="batch-form" class="form-grid">
+        <input type="hidden" id="batch-id" />
+        <label>Recipe<select id="batch-recipe"></select></label>
+        <label>Quantity<input type="number" id="batch-quantity" min="1" /></label>
+        <label>Schedule Date<input type="date" id="batch-date" /></label>
+        <label>Status<select id="batch-status">
+            <option value="planned">Planned</option>
+            <option value="in-progress">In Progress</option>
+            <option value="complete">Complete</option>
+          </select></label>
+        <label>Link Orders<select id="batch-orders" multiple></select></label>
+        <div class="modal-actions">
+          <button type="submit">Save Batch</button>
+          <button type="button" class="secondary" data-close="batch-modal">Cancel</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -285,4 +573,5 @@
   <script src="renderer.js"></script>
   <script src="charts.js"></script>
 </body>
+
 </html>
