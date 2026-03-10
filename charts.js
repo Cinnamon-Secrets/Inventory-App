@@ -72,14 +72,13 @@ function renderMoneyChart(range = 'all') {
   const ctx = canvas.getContext('2d');
   if (moneyChartInstance) moneyChartInstance.destroy();
   const orders = getOrdersWithinRange(range);
-  const totalRevenue = orders.reduce((sum, order) => {
-    const itemsTotal = (order.items || []).reduce((subtotal, item) => {
-      const recipe = window.data.menuItems.find(m => m.id === item.itemId);
-      return subtotal + ((recipe?.price || 0) * (item.qty || 0));
-    }, 0);
-    return sum + itemsTotal;
-  }, 0);
-  const totalDeposits = orders.reduce((sum, order) => sum + (Number(order.deposit) || 0), 0);
+  const financials = orders.reduce((acc, order) => {
+    const totals = getOrderFinancials(order);
+    acc.revenue += totals.total;
+    acc.collected += totals.collected;
+    acc.outstanding += totals.outstanding;
+    return acc;
+  }, { revenue: 0, collected: 0, outstanding: 0 });
   const ingredientSpend = (window.data.inventoryMovements || [])
     .filter(move => move.type === 'restock')
     .reduce((sum, move) => {
@@ -89,11 +88,11 @@ function renderMoneyChart(range = 'all') {
   moneyChartInstance = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: ['Revenue', 'Deposits', 'Ingredient Spend'],
+      labels: ['Revenue', 'Collected', 'Outstanding', 'Ingredient Spend'],
       datasets: [{
         label: 'Money Metrics',
-        data: [totalRevenue, totalDeposits, ingredientSpend],
-        backgroundColor: ['#ff80c0', '#ffb8e8', '#ff4080']
+        data: [financials.revenue, financials.collected, financials.outstanding, ingredientSpend],
+        backgroundColor: ['#ff80c0', '#ffb8e8', '#ffc76a', '#ff4080']
       }]
     },
     options: {
@@ -194,4 +193,18 @@ function startOfDay(input) {
   if (Number.isNaN(date.getTime())) return null;
   date.setHours(0, 0, 0, 0);
   return date;
+}
+
+function getOrderFinancials(order) {
+  const total = (order.items || []).reduce((subtotal, item) => {
+    const recipe = window.data.menuItems.find(m => m.id === item.itemId);
+    return subtotal + ((recipe?.price || 0) * (item.qty || 0));
+  }, 0);
+  const deposit = Number(order.deposit) || 0;
+  const paidAmount = Number(order.paidAmount) || 0;
+  const collected = order.paymentStatus === 'Paid'
+    ? Math.min(total, deposit + paidAmount)
+    : Math.min(total, deposit);
+  const outstanding = Math.max(total - collected, 0);
+  return { total, collected, outstanding };
 }

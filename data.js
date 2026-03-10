@@ -65,6 +65,12 @@
       if (!order.id) order.id = createId('order');
       if (!order.fulfillmentType) order.fulfillmentType = 'Pickup';
       if (!order.channel) order.channel = 'Direct';
+      if (!order.orderType) order.orderType = 'drop';
+      order.paymentMethod = order.paymentMethod || '';
+      order.paymentStatus = order.paymentStatus || (order.paymentMethod ? 'Paid' : 'Unpaid');
+      order.paidAmount = Number(order.paidAmount) || 0;
+      order.deposit = Number(order.deposit) || 0;
+      order.paidAt = order.paidAt || null;
       if (!Array.isArray(order.items)) order.items = [];
     });
 

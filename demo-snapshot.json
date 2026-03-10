@@ -1,296 +1,304 @@
-﻿{
+{
   "ingredients": [
     {
       "id": "ingredient-flour",
       "name": "Stoneground Artisan Flour",
-      "quantity": 180,
+      "quantity": 220,
       "unit": "lb",
-      "price": 0.9,
-      "reorderPoint": 60,
+      "price": 0.92,
+      "reorderPoint": 70,
       "supplierId": "supplier-harvest",
-      "notes": "Blend of hard white wheat; base for every dough."
+      "notes": "Primary dough base"
     },
     {
       "id": "ingredient-butter",
       "name": "European Butter 82%",
-      "quantity": 62,
+      "quantity": 68,
       "unit": "lb",
-      "price": 3.75,
-      "reorderPoint": 20,
+      "price": 3.8,
+      "reorderPoint": 24,
       "supplierId": "supplier-dairy-delight",
-      "notes": "Plugra-style butter for lamination."
-    },
-    {
-      "id": "ingredient-cream-cheese",
-      "name": "Cream Cheese Blocks",
-      "quantity": 48,
-      "unit": "lb",
-      "price": 2.9,
-      "reorderPoint": 18,
-      "supplierId": "supplier-dairy-delight",
-      "notes": "Used for frostings and fillings."
+      "notes": "Lamination and filling"
     },
     {
       "id": "ingredient-brown-sugar",
       "name": "Dark Brown Sugar",
-      "quantity": 80,
+      "quantity": 95,
       "unit": "lb",
-      "price": 1.2,
-      "reorderPoint": 30,
+      "price": 1.24,
+      "reorderPoint": 35,
       "supplierId": "supplier-harvest",
-      "notes": "Moist; perfect for sticky buns."
+      "notes": "Core cinnamon filling"
     },
     {
       "id": "ingredient-cinnamon",
       "name": "Saigon Cinnamon",
-      "quantity": 22,
+      "quantity": 26,
       "unit": "lb",
-      "price": 0.45,
-      "reorderPoint": 8,
+      "price": 0.48,
+      "reorderPoint": 10,
       "supplierId": "supplier-harvest",
-      "notes": "High oil content, strong aroma."
+      "notes": "Signature flavor"
+    },
+    {
+      "id": "ingredient-cream-cheese",
+      "name": "Cream Cheese Blocks",
+      "quantity": 44,
+      "unit": "lb",
+      "price": 2.95,
+      "reorderPoint": 16,
+      "supplierId": "supplier-dairy-delight",
+      "notes": "Frosting and special glazes"
     },
     {
       "id": "ingredient-yeast",
       "name": "Instant Yeast",
-      "quantity": 15,
+      "quantity": 18,
       "unit": "lb",
-      "price": 0.25,
-      "reorderPoint": 6,
+      "price": 0.27,
+      "reorderPoint": 7,
       "supplierId": "supplier-harvest",
-      "notes": "Stored frozen for freshness."
+      "notes": "Proofing batches"
     }
   ],
   "menuItems": [
     {
-      "id": "recipe-maple-rolls",
-      "name": "Maple Brown Sugar Rolls",
-      "price": 48,
-      "instructions": "Proof overnight; finish with maple drizzle.",
+      "id": "recipe-classic-roll",
+      "name": "Classic Cinnamon Dozen",
+      "price": 18,
+      "instructions": "Overnight rise, cream cheese glaze",
+      "cost": 7.5,
       "ingredientsRequired": [
-        { "ingredientId": "ingredient-flour", "quantity": 4 },
-        { "ingredientId": "ingredient-butter", "quantity": 1.5 },
-        { "ingredientId": "ingredient-brown-sugar", "quantity": 1 },
-        { "ingredientId": "ingredient-cinnamon", "quantity": 0.3 }
+        { "ingredientId": "ingredient-flour", "quantity": 2.1 },
+        { "ingredientId": "ingredient-butter", "quantity": 0.7 },
+        { "ingredientId": "ingredient-brown-sugar", "quantity": 0.5 },
+        { "ingredientId": "ingredient-cinnamon", "quantity": 0.18 },
+        { "ingredientId": "ingredient-cream-cheese", "quantity": 0.35 }
       ]
     },
     {
-      "id": "recipe-orange-knots",
-      "name": "Orange Cardamom Knots",
-      "price": 44,
-      "instructions": "Brush with spiced syrup before service.",
+      "id": "recipe-orange-knot",
+      "name": "Orange Cardamom Dozen",
+      "price": 20,
+      "instructions": "Orange syrup finish",
+      "cost": 8.1,
       "ingredientsRequired": [
-        { "ingredientId": "ingredient-flour", "quantity": 3.5 },
-        { "ingredientId": "ingredient-butter", "quantity": 1.2 },
-        { "ingredientId": "ingredient-brown-sugar", "quantity": 0.7 }
+        { "ingredientId": "ingredient-flour", "quantity": 2.2 },
+        { "ingredientId": "ingredient-butter", "quantity": 0.72 },
+        { "ingredientId": "ingredient-brown-sugar", "quantity": 0.4 },
+        { "ingredientId": "ingredient-cinnamon", "quantity": 0.1 }
       ]
     },
     {
       "id": "recipe-pistachio-swirl",
-      "name": "Roasted Pistachio Swirls",
-      "price": 52,
-      "instructions": "Top with cream cheese glaze + pistachio dust.",
+      "name": "Pistachio Swirl Dozen",
+      "price": 22,
+      "instructions": "Pistachio crumb and light glaze",
+      "cost": 9.3,
       "ingredientsRequired": [
-        { "ingredientId": "ingredient-flour", "quantity": 4.2 },
-        { "ingredientId": "ingredient-butter", "quantity": 1.6 },
-        { "ingredientId": "ingredient-cream-cheese", "quantity": 0.8 }
+        { "ingredientId": "ingredient-flour", "quantity": 2.3 },
+        { "ingredientId": "ingredient-butter", "quantity": 0.78 },
+        { "ingredientId": "ingredient-cream-cheese", "quantity": 0.42 }
+      ]
+    },
+    {
+      "id": "recipe-mini-bites",
+      "name": "Mini Cinnamon Bites Tray",
+      "price": 12,
+      "instructions": "Party tray, no frosting",
+      "cost": 5,
+      "ingredientsRequired": [
+        { "ingredientId": "ingredient-flour", "quantity": 1.2 },
+        { "ingredientId": "ingredient-butter", "quantity": 0.4 },
+        { "ingredientId": "ingredient-brown-sugar", "quantity": 0.32 },
+        { "ingredientId": "ingredient-cinnamon", "quantity": 0.12 }
       ]
     }
   ],
   "productionHistory": [
     {
-      "id": "history-sep-harvest",
-      "recipeName": "Maple Brown Sugar Rolls",
-      "date": "2025-09-14",
-      "quantity": 42,
+      "id": "history-2026-03-02-classic",
+      "recipeName": "Classic Cinnamon Dozen",
+      "quantity": 18,
       "ingredientsUsed": [
-        { "name": "Stoneground Artisan Flour", "amount": 26 },
-        { "name": "European Butter 82%", "amount": 9 },
-        { "name": "Dark Brown Sugar", "amount": 7 }
-      ]
+        { "name": "Stoneground Artisan Flour", "amount": 37.8 },
+        { "name": "European Butter 82%", "amount": 12.6 },
+        { "name": "Dark Brown Sugar", "amount": 9 },
+        { "name": "Saigon Cinnamon", "amount": 3.24 }
+      ],
+      "totalCost": 135,
+      "totalRevenue": 324,
+      "date": "2026-03-02"
     },
     {
-      "id": "history-oct-market",
-      "recipeName": "Orange Cardamom Knots",
-      "date": "2025-10-04",
-      "quantity": 60,
+      "id": "history-2026-03-05-orange",
+      "recipeName": "Orange Cardamom Dozen",
+      "quantity": 14,
       "ingredientsUsed": [
-        { "name": "Stoneground Artisan Flour", "amount": 30 },
-        { "name": "European Butter 82%", "amount": 12 }
-      ]
-    },
-    {
-      "id": "history-nov-gift",
-      "recipeName": "Roasted Pistachio Swirls",
-      "date": "2025-11-18",
-      "quantity": 48,
-      "ingredientsUsed": [
-        { "name": "Stoneground Artisan Flour", "amount": 28 },
-        { "name": "Cream Cheese Blocks", "amount": 12 }
-      ]
+        { "name": "Stoneground Artisan Flour", "amount": 30.8 },
+        { "name": "European Butter 82%", "amount": 10.08 }
+      ],
+      "totalCost": 113.4,
+      "totalRevenue": 280,
+      "date": "2026-03-05"
     }
   ],
   "orders": [
     {
-      "id": "order-harvest-brunch",
+      "id": "order-drop-001",
       "customerId": "customer-ramirez",
       "customerName": "Elena Ramirez",
+      "orderType": "drop",
       "channel": "Instagram",
       "fulfillmentType": "Pickup",
-      "pickupDate": "2025-09-15",
-      "deliverySlotId": null,
-      "deposit": 75,
-      "notes": "Brunch trays for 12.",
-      "date": "2025-09-12",
-      "status": "Fulfilled",
-      "produced": true,
-      "items": [
-        { "itemId": "recipe-maple-rolls", "qty": 3 },
-        { "itemId": "recipe-orange-knots", "qty": 2 }
-      ]
-    },
-    {
-      "id": "order-market-booth",
-      "customerId": "customer-vyas",
-      "customerName": "Priya Vyas",
-      "channel": "Direct",
-      "fulfillmentType": "Delivery",
-      "pickupDate": "2025-10-05",
-      "deliverySlotId": null,
-      "deposit": 120,
-      "notes": "Mini buns for fall makers market.",
-      "date": "2025-10-03",
-      "status": "Fulfilled",
-      "produced": true,
-      "items": [
-        { "itemId": "recipe-maple-rolls", "qty": 4 },
-        { "itemId": "recipe-pistachio-swirl", "qty": 2 }
-      ]
-    },
-    {
-      "id": "order-farmers-collab",
-      "customerId": "customer-ortega",
-      "customerName": "Marco Ortega",
-      "channel": "Direct",
-      "fulfillmentType": "Pickup",
-      "pickupDate": "2025-10-23",
-      "deliverySlotId": null,
-      "deposit": 90,
-      "notes": "Sampler box for vendor collab.",
-      "date": "2025-10-21",
-      "status": "Produced",
-      "produced": true,
-      "items": [
-        { "itemId": "recipe-orange-knots", "qty": 3 },
-        { "itemId": "recipe-pistachio-swirl", "qty": 2 }
-      ]
-    },
-    {
-      "id": "order-friendsgiving",
-      "customerId": "customer-banks",
-      "customerName": "Harper Banks",
-      "channel": "Instagram",
-      "fulfillmentType": "Pickup",
-      "pickupDate": "2025-11-10",
-      "deliverySlotId": null,
-      "deposit": 60,
-      "notes": "Friendsgiving dessert bar.",
-      "date": "2025-11-05",
-      "status": "Fulfilled",
-      "produced": true,
-      "items": [
-        { "itemId": "recipe-maple-rolls", "qty": 2 },
-        { "itemId": "recipe-pistachio-swirl", "qty": 1 }
-      ]
-    },
-    {
-      "id": "order-atelier-launch",
-      "customerId": "customer-campbell",
-      "customerName": "Miles Campbell",
-      "channel": "Instagram",
-      "fulfillmentType": "Pickup",
-      "pickupDate": "2025-11-20",
-      "deliverySlotId": null,
-      "deposit": 110,
-      "notes": "Studio launch tasting.",
-      "date": "2025-11-18",
-      "status": "Produced",
+      "pickupDate": "2026-03-12",
+      "deliverySlotId": "slot-2026-03-12-am",
+      "deposit": 20,
+      "paymentMethod": "",
+      "paymentStatus": "Unpaid",
+      "paidAmount": 0,
+      "paidAt": null,
+      "notes": "No nuts",
+      "date": "2026-03-08",
+      "status": "Pending",
       "produced": false,
       "items": [
-        { "itemId": "recipe-orange-knots", "qty": 4 },
-        { "itemId": "recipe-pistachio-swirl", "qty": 2 }
+        { "itemId": "recipe-classic-roll", "qty": 8 },
+        { "itemId": "recipe-orange-knot", "qty": 4 }
       ]
     },
     {
-      "id": "order-holiday-preview",
+      "id": "order-drop-002",
       "customerId": "customer-hsu",
       "customerName": "Lana Hsu",
+      "orderType": "drop",
       "channel": "Website",
-      "fulfillmentType": "Delivery",
-      "pickupDate": "2025-12-02",
-      "deliverySlotId": "slot-2025-12-02-pm",
-      "deposit": 150,
-      "notes": "Corporate tasting flight.",
-      "date": "2025-11-29",
+      "fulfillmentType": "Pickup",
+      "pickupDate": "2026-03-12",
+      "deliverySlotId": "slot-2026-03-12-pm",
+      "deposit": 20,
+      "paymentMethod": "Venmo",
+      "paymentStatus": "Paid",
+      "paidAmount": 92,
+      "paidAt": "2026-03-12T16:14:00-08:00",
+      "notes": "Corporate team snack",
+      "date": "2026-03-07",
+      "status": "Produced",
+      "produced": true,
+      "items": [
+        { "itemId": "recipe-classic-roll", "qty": 4 },
+        { "itemId": "recipe-orange-knot", "qty": 2 }
+      ]
+    },
+    {
+      "id": "order-drop-003",
+      "customerId": "customer-vyas",
+      "customerName": "Priya Vyas",
+      "orderType": "drop",
+      "channel": "Instagram",
+      "fulfillmentType": "Pickup",
+      "pickupDate": "2026-03-14",
+      "deliverySlotId": "slot-2026-03-14-am",
+      "deposit": 0,
+      "paymentMethod": "Cash",
+      "paymentStatus": "Paid",
+      "paidAmount": 66,
+      "paidAt": "2026-03-14T09:05:00-08:00",
+      "notes": "Wedding brunch tasting",
+      "date": "2026-03-09",
       "status": "Fulfilled",
       "produced": true,
       "items": [
-        { "itemId": "recipe-maple-rolls", "qty": 3 },
         { "itemId": "recipe-pistachio-swirl", "qty": 3 }
       ]
     },
     {
-      "id": "order-hanukkah-mix",
-      "customerId": "customer-ramirez",
-      "customerName": "Elena Ramirez",
+      "id": "order-drop-004",
+      "customerId": "customer-ortega",
+      "customerName": "Marco Ortega",
+      "orderType": "drop",
+      "channel": "Direct",
+      "fulfillmentType": "Pickup",
+      "pickupDate": "2026-03-12",
+      "deliverySlotId": "slot-2026-03-12-am",
+      "deposit": 10,
+      "paymentMethod": "",
+      "paymentStatus": "Unpaid",
+      "paidAmount": 0,
+      "paidAt": null,
+      "notes": "Cancelled due to travel",
+      "date": "2026-03-08",
+      "status": "Cancelled",
+      "produced": false,
+      "items": [
+        { "itemId": "recipe-classic-roll", "qty": 6 }
+      ]
+    },
+    {
+      "id": "order-drop-005",
+      "customerId": "customer-banks",
+      "customerName": "Harper Banks",
+      "orderType": "drop",
+      "channel": "Website",
+      "fulfillmentType": "Pickup",
+      "pickupDate": "2026-03-10",
+      "deliverySlotId": "slot-2026-03-10-am",
+      "deposit": 12,
+      "paymentMethod": "",
+      "paymentStatus": "Unpaid",
+      "paidAmount": 0,
+      "paidAt": null,
+      "notes": "Photo studio crew",
+      "date": "2026-03-09",
+      "status": "Pending",
+      "produced": false,
+      "items": [
+        { "itemId": "recipe-mini-bites", "qty": 12 }
+      ]
+    },
+    {
+      "id": "order-custom-001",
+      "customerId": "customer-campbell",
+      "customerName": "Miles Campbell",
+      "orderType": "custom",
       "channel": "Instagram",
       "fulfillmentType": "Pickup",
-      "pickupDate": "2025-12-07",
-      "deliverySlotId": "slot-2025-12-07-am",
+      "pickupDate": "2026-03-16",
+      "deliverySlotId": null,
       "deposit": 80,
-      "notes": "Need nut-free glaze option.",
-      "date": "2025-12-02",
+      "paymentMethod": "",
+      "paymentStatus": "Unpaid",
+      "paidAmount": 0,
+      "paidAt": null,
+      "notes": "Evening gallery event order",
+      "date": "2026-03-09",
       "status": "Pending",
       "produced": false,
       "items": [
-        { "itemId": "recipe-maple-rolls", "qty": 2 },
-        { "itemId": "recipe-orange-knots", "qty": 2 }
+        { "itemId": "recipe-classic-roll", "qty": 6 },
+        { "itemId": "recipe-pistachio-swirl", "qty": 4 }
       ]
     },
     {
-      "id": "order-winter-wedding",
-      "customerId": "customer-vyas",
-      "customerName": "Priya Vyas",
-      "channel": "Website",
-      "fulfillmentType": "Delivery",
-      "pickupDate": "2025-12-12",
-      "deliverySlotId": "slot-2025-12-12-pm",
-      "deposit": 200,
-      "notes": "Include tasting notes cards.",
-      "date": "2025-12-03",
-      "status": "Pending",
-      "produced": false,
-      "items": [
-        { "itemId": "recipe-pistachio-swirl", "qty": 5 },
-        { "itemId": "recipe-orange-knots", "qty": 3 }
-      ]
-    },
-    {
-      "id": "order-corporate-gift",
+      "id": "order-custom-002",
       "customerId": "customer-hsu",
       "customerName": "Lana Hsu",
+      "orderType": "custom",
       "channel": "Website",
       "fulfillmentType": "Delivery",
-      "pickupDate": "2025-12-16",
-      "deliverySlotId": "slot-2025-12-16-am",
-      "deposit": 320,
-      "notes": "20 gift boxes for Wondermade teams.",
-      "date": "2025-12-04",
-      "status": "Pending",
-      "produced": false,
+      "pickupDate": "2026-03-18",
+      "deliverySlotId": null,
+      "deposit": 40,
+      "paymentMethod": "Zelle",
+      "paymentStatus": "Paid",
+      "paidAmount": 60,
+      "paidAt": "2026-03-18T11:22:00-08:00",
+      "notes": "Off-hours investor dinner",
+      "date": "2026-03-04",
+      "status": "Fulfilled",
+      "produced": true,
       "items": [
-        { "itemId": "recipe-maple-rolls", "qty": 6 },
-        { "itemId": "recipe-pistachio-swirl", "qty": 4 }
+        { "itemId": "recipe-orange-knot", "qty": 5 }
       ]
     }
   ],
@@ -302,7 +310,7 @@
       "email": "elena@fighouse.studio",
       "channel": "Instagram",
       "status": "Active",
-      "notes": "Interior stylist; recurring brunch orders."
+      "notes": "Recurring brunch customer"
     },
     {
       "id": "customer-hsu",
@@ -311,25 +319,25 @@
       "email": "lana@wondermade.co",
       "channel": "Website",
       "status": "Active",
-      "notes": "Corporate gifting manager."
+      "notes": "Corporate gifting + events"
     },
     {
       "id": "customer-campbell",
       "name": "Miles Campbell",
       "phone": "503-555-0187",
       "email": "miles@ateliernorth.com",
-      "channel": "Direct",
+      "channel": "Instagram",
       "status": "Active",
-      "notes": "Hosts seasonal workshops."
+      "notes": "Custom off-hours requests"
     },
     {
       "id": "customer-banks",
       "name": "Harper Banks",
       "phone": "503-555-0152",
       "email": "harper@wildcurrent.co",
-      "channel": "Instagram",
+      "channel": "Website",
       "status": "Active",
-      "notes": "Photo studio owner."
+      "notes": "Pickup regular"
     },
     {
       "id": "customer-ortega",
@@ -338,7 +346,7 @@
       "email": "marco@riverstonebuild.com",
       "channel": "Direct",
       "status": "Active",
-      "notes": "Catered job sites quarterly."
+      "notes": "Bulk order, occasional"
     },
     {
       "id": "customer-vyas",
@@ -347,7 +355,7 @@
       "email": "hello@priyav.com",
       "channel": "Instagram",
       "status": "Active",
-      "notes": "Event planner; detail oriented."
+      "notes": "Event planner"
     }
   ],
   "suppliers": [
@@ -359,7 +367,7 @@
       "email": "orders@harvestcollective.com",
       "leadTimeDays": 5,
       "terms": "Net 15",
-      "notes": "Primary flour + sugar vendor."
+      "notes": "Flour + sugar"
     },
     {
       "id": "supplier-dairy-delight",
@@ -369,7 +377,7 @@
       "email": "hello@dairydelight.co",
       "leadTimeDays": 4,
       "terms": "Net 10",
-      "notes": "Butter and cream cheese contracts."
+      "notes": "Butter + cream cheese"
     },
     {
       "id": "supplier-packaging-hub",
@@ -379,201 +387,236 @@
       "email": "pkhanna@packaginghub.com",
       "leadTimeDays": 7,
       "terms": "Net 30",
-      "notes": "Small-batch boxes and inserts."
+      "notes": "Gift boxes and labels"
     }
   ],
   "purchaseOrders": [
     {
-      "id": "po-oct-butter",
+      "id": "po-2026-03-01-butter",
       "supplierId": "supplier-dairy-delight",
-      "expectedDate": "2025-10-12",
-      "status": "Received",
-      "notes": "Restock butter + cream cheese.",
+      "expectedDate": "2026-03-11",
+      "status": "Submitted",
+      "notes": "Pre-weekend drop stock",
       "items": [
-        { "ingredientId": "ingredient-butter", "quantity": 40 },
-        { "ingredientId": "ingredient-cream-cheese", "quantity": 24 }
+        { "ingredientId": "ingredient-butter", "quantity": 24 },
+        { "ingredientId": "ingredient-cream-cheese", "quantity": 18 }
       ]
     },
     {
-      "id": "po-dec-cream",
-      "supplierId": "supplier-dairy-delight",
-      "expectedDate": "2025-12-09",
-      "status": "Sent",
-      "notes": "Holiday cushion order.",
+      "id": "po-2026-03-03-flour",
+      "supplierId": "supplier-harvest",
+      "expectedDate": "2026-03-13",
+      "status": "Draft",
+      "notes": "If custom demand stays high",
       "items": [
-        { "ingredientId": "ingredient-butter", "quantity": 30 },
-        { "ingredientId": "ingredient-cream-cheese", "quantity": 30 }
+        { "ingredientId": "ingredient-flour", "quantity": 60 },
+        { "ingredientId": "ingredient-brown-sugar", "quantity": 30 }
       ]
     }
   ],
   "inventoryMovements": [
     {
-      "id": "move-oct-butter-restock",
+      "id": "move-2026-03-05-restock-butter",
       "ingredientId": "ingredient-butter",
+      "quantity": 20,
+      "type": "restock",
+      "note": "Dairy delivery",
+      "date": "2026-03-05"
+    },
+    {
+      "id": "move-2026-03-06-usage-flour",
+      "ingredientId": "ingredient-flour",
+      "quantity": -28,
+      "type": "usage",
+      "note": "Drop prep",
+      "date": "2026-03-06"
+    },
+    {
+      "id": "move-2026-03-07-usage-sugar",
+      "ingredientId": "ingredient-brown-sugar",
+      "quantity": -10,
+      "type": "usage",
+      "note": "Weekend run",
+      "date": "2026-03-07"
+    },
+    {
+      "id": "move-2026-03-08-restock-flour",
+      "ingredientId": "ingredient-flour",
       "quantity": 40,
       "type": "restock",
-      "note": "PO #po-oct-butter",
-      "date": "2025-10-12"
-    },
-    {
-      "id": "move-nov-flour-usage",
-      "ingredientId": "ingredient-flour",
-      "quantity": -35,
-      "type": "usage",
-      "note": "Friendsgiving prep",
-      "date": "2025-11-08"
-    },
-    {
-      "id": "move-nov-sugar-usage",
-      "ingredientId": "ingredient-brown-sugar",
-      "quantity": -18,
-      "type": "usage",
-      "note": "Holiday preview boxes",
-      "date": "2025-11-29"
-    },
-    {
-      "id": "move-dec-flour-restock",
-      "ingredientId": "ingredient-flour",
-      "quantity": 60,
-      "type": "restock",
-      "note": "Quick top-up from Harvest Collective",
-      "date": "2025-12-03"
+      "note": "Urgent pickup",
+      "date": "2026-03-08"
     }
   ],
   "tasks": [
     {
-      "id": "task-holiday-boxes",
-      "title": "Assemble holiday tasting boxes",
-      "dueDate": "2025-12-06",
-      "category": "production",
-      "status": "open",
-      "notes": "Need 14 boxes ribboned."
-    },
-    {
-      "id": "task-hanukkah-labels",
-      "title": "Print nut-free labels",
-      "dueDate": "2025-12-07",
-      "category": "operations",
-      "status": "open",
-      "notes": "Tie to order-hanukkah-mix."
-    },
-    {
-      "id": "task-wedding-samples",
-      "title": "Prep wedding tasting samples",
-      "dueDate": "2025-12-11",
-      "category": "production",
-      "status": "open",
-      "notes": "Deliver to Priya by noon."
-    },
-    {
-      "id": "task-gifting-followup",
-      "title": "Confirm corporate gift addresses",
-      "dueDate": "2025-12-15",
+      "id": "task-drop-post-mar12",
+      "title": "Publish Mar 12 drop menu to IG and site",
+      "dueDate": "2026-03-10",
       "category": "crm",
       "status": "open",
-      "notes": "Need final spreadsheet from Lana."
+      "notes": "Use capacity summary before posting"
+    },
+    {
+      "id": "task-custom-check-campbell",
+      "title": "Confirm custom order details with Miles",
+      "dueDate": "2026-03-11",
+      "category": "crm",
+      "status": "in-progress",
+      "notes": "Event starts at 7:30 PM"
+    },
+    {
+      "id": "task-batch-setup-mar14",
+      "title": "Prep pistachio mise en place",
+      "dueDate": "2026-03-13",
+      "category": "production",
+      "status": "open",
+      "notes": "Roast nuts day before"
     }
   ],
   "communications": [
     {
-      "id": "comm-oct-lana",
-      "customerId": "customer-hsu",
-      "channel": "Email",
-      "subject": "Holiday tasting flight",
-      "message": "Shared menu options + pricing recap.",
-      "date": "2025-11-18T10:20:00-08:00"
-    },
-    {
-      "id": "comm-nov-elena",
+      "id": "comm-2026-03-08-ramirez",
       "customerId": "customer-ramirez",
-      "channel": "SMS",
-      "subject": "Nut allergy follow up",
-      "message": "Confirmed glaze swap for son.",
-      "date": "2025-11-30T14:05:00-08:00"
+      "channel": "Instagram DM",
+      "subject": "Nut-free glaze",
+      "message": "Confirmed no-nut prep for Mar 12 pickup",
+      "date": "2026-03-08T13:15:00-08:00"
     },
     {
-      "id": "comm-dec-priya",
-      "customerId": "customer-vyas",
-      "channel": "Instagram",
-      "subject": "Winter wedding inspo",
-      "message": "Sent palette ideas + tasting notes.",
-      "date": "2025-12-04T09:42:00-08:00"
+      "id": "comm-2026-03-09-campbell",
+      "customerId": "customer-campbell",
+      "channel": "Email",
+      "subject": "Custom event timeline",
+      "message": "Sent prep timeline and pickup window",
+      "date": "2026-03-09T10:40:00-08:00"
     }
   ],
   "deliverySlots": [
     {
-      "id": "slot-2025-12-02-pm",
-      "date": "2025-12-02",
-      "window": "16:00-18:00",
-      "capacity": 6,
-      "committedOrders": ["order-holiday-preview"]
-    },
-    {
-      "id": "slot-2025-12-07-am",
-      "date": "2025-12-07",
+      "id": "slot-2026-03-10-am",
+      "date": "2026-03-10",
       "window": "08:00-10:00",
       "capacity": 4,
-      "committedOrders": ["order-hanukkah-mix"]
+      "committedOrders": ["order-drop-005"]
     },
     {
-      "id": "slot-2025-12-12-pm",
-      "date": "2025-12-12",
-      "window": "16:00-18:00",
-      "capacity": 6,
-      "committedOrders": ["order-winter-wedding"]
-    },
-    {
-      "id": "slot-2025-12-16-am",
-      "date": "2025-12-16",
+      "id": "slot-2026-03-10-mid",
+      "date": "2026-03-10",
       "window": "10:00-12:00",
       "capacity": 4,
-      "committedOrders": ["order-corporate-gift"]
+      "committedOrders": []
+    },
+    {
+      "id": "slot-2026-03-10-pm",
+      "date": "2026-03-10",
+      "window": "16:00-18:00",
+      "capacity": 6,
+      "committedOrders": []
+    },
+    {
+      "id": "slot-2026-03-12-am",
+      "date": "2026-03-12",
+      "window": "08:00-10:00",
+      "capacity": 4,
+      "committedOrders": ["order-drop-001"]
+    },
+    {
+      "id": "slot-2026-03-12-mid",
+      "date": "2026-03-12",
+      "window": "10:00-12:00",
+      "capacity": 4,
+      "committedOrders": []
+    },
+    {
+      "id": "slot-2026-03-12-pm",
+      "date": "2026-03-12",
+      "window": "16:00-18:00",
+      "capacity": 6,
+      "committedOrders": ["order-drop-002"]
+    },
+    {
+      "id": "slot-2026-03-14-am",
+      "date": "2026-03-14",
+      "window": "08:00-10:00",
+      "capacity": 4,
+      "committedOrders": ["order-drop-003"]
+    },
+    {
+      "id": "slot-2026-03-14-mid",
+      "date": "2026-03-14",
+      "window": "10:00-12:00",
+      "capacity": 4,
+      "committedOrders": []
+    },
+    {
+      "id": "slot-2026-03-14-pm",
+      "date": "2026-03-14",
+      "window": "16:00-18:00",
+      "capacity": 6,
+      "committedOrders": []
     }
   ],
   "marketingCampaigns": [
     {
-      "id": "campaign-harvest-market",
-      "name": "Harvest Market Pop-up",
+      "id": "campaign-spring-drop",
+      "name": "Spring Weekend Drops",
       "channel": "Instagram",
-      "startDate": "2025-09-01",
-      "endDate": "2025-10-01",
-      "budget": 120,
-      "notes": "Drove makers market traffic."
+      "startDate": "2026-03-01",
+      "endDate": "2026-03-31",
+      "budget": 140,
+      "notes": "Focus on planned drop menu and limited quantities"
     },
     {
-      "id": "campaign-holiday-gifting",
-      "name": "Holiday Gifting Guide",
-      "channel": "Email",
-      "startDate": "2025-11-10",
-      "endDate": "2025-12-20",
-      "budget": 90,
-      "notes": "Warm list of loyal clients."
+      "id": "campaign-custom-events",
+      "name": "Custom Event Feature",
+      "channel": "Website",
+      "startDate": "2026-03-05",
+      "endDate": "2026-04-10",
+      "budget": 80,
+      "notes": "Promotes 48-hour custom order policy"
     }
   ],
   "productionSchedule": [
     {
-      "id": "batch-dec-hanukkah",
-      "recipeId": "recipe-maple-rolls",
-      "quantity": 36,
-      "scheduleDate": "2025-12-06",
+      "id": "batch-2026-03-10-mini",
+      "recipeId": "recipe-mini-bites",
+      "quantity": 40,
+      "scheduleDate": "2026-03-10",
       "status": "planned",
-      "linkedOrderIds": ["order-hanukkah-mix"]
+      "linkedOrderIds": ["order-drop-005"]
     },
     {
-      "id": "batch-dec-wedding",
-      "recipeId": "recipe-pistachio-swirl",
-      "quantity": 48,
-      "scheduleDate": "2025-12-10",
+      "id": "batch-2026-03-12-classic",
+      "recipeId": "recipe-classic-roll",
+      "quantity": 30,
+      "scheduleDate": "2026-03-12",
       "status": "in-progress",
-      "linkedOrderIds": ["order-winter-wedding"]
+      "linkedOrderIds": ["order-drop-001", "order-drop-002"]
     },
     {
-      "id": "batch-dec-gifting",
-      "recipeId": "recipe-orange-knots",
-      "quantity": 60,
-      "scheduleDate": "2025-12-14",
+      "id": "batch-2026-03-12-orange",
+      "recipeId": "recipe-orange-knot",
+      "quantity": 16,
+      "scheduleDate": "2026-03-12",
       "status": "planned",
-      "linkedOrderIds": ["order-corporate-gift"]
+      "linkedOrderIds": ["order-drop-001", "order-drop-002"]
+    },
+    {
+      "id": "batch-2026-03-14-pistachio",
+      "recipeId": "recipe-pistachio-swirl",
+      "quantity": 20,
+      "scheduleDate": "2026-03-14",
+      "status": "planned",
+      "linkedOrderIds": ["order-drop-003"]
+    },
+    {
+      "id": "batch-2026-03-16-custom",
+      "recipeId": "recipe-classic-roll",
+      "quantity": 14,
+      "scheduleDate": "2026-03-16",
+      "status": "planned",
+      "linkedOrderIds": ["order-custom-001"]
     }
   ]
 }

@@ -12,6 +12,7 @@
 
   const CHANNELS = ['Direct', 'Instagram', 'Website'];
   const FULFILLMENT_OPTIONS = ['Pickup', 'Delivery'];
+  const PAYMENT_METHODS = ['Cash', 'Venmo', 'PayPal', 'Zelle'];
   const ORDER_STATUSES = ['Pending', 'Produced', 'Fulfilled', 'Cancelled'];
   const BATCH_STATUSES = ['planned', 'in-progress', 'complete'];
 
@@ -25,8 +26,10 @@
     selectedSupplierId: null,
     editingOrderId: null,
     editingBatchId: null,
+    paymentOrderId: null,
     calendarCursor: null,
-    archives: []
+    archives: [],
+    onboardingDismissed: false
   };
 
   const moneyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
@@ -42,6 +45,12 @@
       await window.loadData();
     }
     window.data = window.normalizeSnapshot(window.data);
+    syncDeliverySlotCommitments();
+    try {
+      state.onboardingDismissed = localStorage.getItem('cinnamonSecretsOnboardingDismissed') === 'yes';
+    } catch (error) {
+      state.onboardingDismissed = false;
+    }
     hydrateSelections();
     state.calendarCursor = startOfMonth(new Date());
     bindNavigation();
@@ -95,6 +104,7 @@
     attachClick('po-filter-open', () => togglePurchaseOrderFilter());
     attachClick('prev-month', () => shiftCalendar(-1));
     attachClick('next-month', () => shiftCalendar(1));
+    attachClick('dismiss-onboarding', () => dismissOnboarding());
     const importInput = getById('import-file');
     if (importInput) {
       importInput.addEventListener('change', handleSnapshotImport);
@@ -112,6 +122,16 @@
           hideModal(modal.id);
         }
       });
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.key !== 'Escape') return;
+      const openModal = Array.from(document.querySelectorAll('.modal')).find(modal => {
+        return !modal.hasAttribute('hidden') && modal.id !== 'loading-modal';
+      });
+      if (openModal) {
+        hideModal(openModal.id);
+      }
     });
   }
 
@@ -131,6 +151,30 @@
     if (orderForm) {
       orderForm.addEventListener('submit', handleOrderSubmit);
       attachClick('add-order-item', () => addOrderItemRow());
+      const pickupDateInput = getById('order-pickup-date');
+      if (pickupDateInput) {
+        pickupDateInput.addEventListener('change', () => {
+          refreshOrderSlotOptions();
+          updateOrderPolicyHint();
+          updateOrderCapacityHint();
+        });
+      }
+      const orderType = getById('order-type');
+      if (orderType) {
+        orderType.addEventListener('change', () => {
+          updateOrderPolicyHint();
+          updateOrderCapacityHint();
+        });
+      }
+      const paymentMethod = getById('order-payment-method');
+      if (paymentMethod) {
+        paymentMethod.addEventListener('change', () => updateOrderPolicyHint());
+      }
+    }
+
+    const paymentForm = getById('payment-modal-form');
+    if (paymentForm) {
+      paymentForm.addEventListener('submit', handlePickupPaymentSubmit);
     }
 
     const taskForm = getById('task-form');
@@ -232,8 +276,18 @@
         if (button.dataset.action === 'delete-order') {
           confirmDelete('Delete this order?', () => {
             window.data.orders = window.data.orders.filter(o => o.id !== order.id);
+            syncDeliverySlotCommitments();
             persistAndRefresh(['orders', 'production', 'dashboard', 'calendar']);
           });
+        }
+        if (button.dataset.action === 'cancel-order') {
+          order.status = 'Cancelled';
+          syncDeliverySlotCommitments();
+          persistAndRefresh(['orders', 'production', 'dashboard', 'calendar']);
+          showToast('Order cancelled');
+        }
+        if (button.dataset.action === 'pay-order') {
+          openPickupPaymentModal(order);
         }
         if (button.dataset.action === 'advance-order') {
           advanceOrderStatus(order);
@@ -292,6 +346,17 @@
         }
       });
     }
+
+    const orderQueue = getById('unproduced-orders-list');
+    if (orderQueue) {
+      orderQueue.addEventListener('click', event => {
+        const button = event.target.closest('button[data-action="edit-order"]');
+        if (!button) return;
+        const order = window.data.orders.find(entry => entry.id === button.dataset.id);
+        if (!order) return;
+        openOrderModal(order);
+      });
+    }
   }
 
   function renderAll() {
@@ -306,10 +371,55 @@
 
   function renderDashboard() {
     renderMetricGrid();
+    renderOnboardingPanel();
     renderUpcomingList();
     if (typeof updateCharts === 'function') {
       updateCharts(state.metricRange);
     }
+  }
+
+  function renderOnboardingPanel() {
+    const panel = getById('onboarding-panel');
+    if (!panel) return;
+    if (state.onboardingDismissed) {
+      panel.setAttribute('hidden', 'true');
+      return;
+    }
+
+    panel.removeAttribute('hidden');
+    const steps = [
+      { label: 'Stock your pantry with at least 5 ingredients', done: window.data.ingredients.length >= 5 },
+      { label: 'Build your menu with at least 3 recipes', done: window.data.menuItems.length >= 3 },
+      { label: 'Capture your first customer order', done: window.data.orders.length >= 1 },
+      { label: 'Schedule one production batch', done: window.data.productionSchedule.length >= 1 }
+    ];
+    const completed = steps.filter(step => step.done).length;
+
+    const progress = getById('onboarding-progress');
+    if (progress) {
+      progress.textContent = completed === steps.length
+        ? 'All launch steps complete. You are ready to run service.'
+        : `${completed}/${steps.length} launch steps complete`;
+    }
+
+    const list = getById('onboarding-list');
+    if (!list) return;
+    list.innerHTML = steps.map(step => `
+      <li class="${step.done ? 'done' : ''}">
+        <span>${step.done ? 'Done' : 'Open'}</span>
+        <p>${step.label}</p>
+      </li>
+    `).join('');
+  }
+
+  function dismissOnboarding() {
+    state.onboardingDismissed = true;
+    try {
+      localStorage.setItem('cinnamonSecretsOnboardingDismissed', 'yes');
+    } catch (error) {
+      console.error('Failed to persist onboarding preference', error);
+    }
+    renderOnboardingPanel();
   }
 
   function renderMetricGrid() {
@@ -319,16 +429,26 @@
     const openOrders = orders.filter(o => o.status !== 'Fulfilled' && o.status !== 'Cancelled');
     const rangeOrders = filterOrdersByRange(orders);
     const rangeRevenue = rangeOrders.reduce((sum, order) => sum + computeOrderTotal(order), 0);
+    const rangeOutstanding = rangeOrders.reduce((sum, order) => sum + computeOrderBalance(order), 0);
+    const rangeCollected = rangeOrders.reduce((sum, order) => {
+      const total = computeOrderTotal(order);
+      const collected = Math.min(total, (Number(order.deposit) || 0) + (Number(order.paidAmount) || 0));
+      return sum + collected;
+    }, 0);
     const avgOrderValue = rangeOrders.length ? (rangeRevenue / rangeOrders.length) : 0;
     const fulfilledInRange = rangeOrders.filter(order => order.status === 'Fulfilled').length;
+    const customOrders = rangeOrders.filter(order => order.orderType === 'custom').length;
     const lowStock = window.data.ingredients.filter(i => i.quantity <= (i.reorderPoint || 4)).length;
     const tasksOpen = window.data.tasks.filter(t => t.status !== 'done').length;
     const rangeLabel = state.metricRange === 'all' ? 'All Time' : `${state.metricRange} Days`;
 
     const metrics = [
       { label: `Revenue (${rangeLabel})`, value: formatCurrency(rangeRevenue), sub: `${rangeOrders.length} orders in range` },
+      { label: `Collected (${rangeLabel})`, value: formatCurrency(rangeCollected), sub: 'Marked paid orders' },
+      { label: 'Outstanding Balance', value: formatCurrency(rangeOutstanding), sub: 'Still due at pickup or invoice' },
       { label: `Completed (${rangeLabel})`, value: fulfilledInRange, sub: 'Orders marked fulfilled' },
       { label: 'Avg Order Value', value: formatCurrency(avgOrderValue || 0), sub: `${rangeLabel} window` },
+      { label: 'Custom Event Orders', value: customOrders, sub: 'Off-hours or event requests' },
       { label: 'Open Orders', value: openOrders.length, sub: 'Awaiting fulfilment' },
       { label: 'Low Stock Items', value: lowStock, sub: 'Below reorder point' },
       { label: 'Active Tasks', value: tasksOpen, sub: 'Operations + CRM' }
@@ -447,11 +567,11 @@
     if (!alert) return;
     const low = window.data.ingredients.filter(i => i.quantity <= (i.reorderPoint || 4));
     if (!low.length) {
-      alert.classList.add('hidden');
+      alert.classList.remove('active');
       alert.textContent = '';
       return;
     }
-    alert.classList.remove('hidden');
+    alert.classList.add('active');
     alert.innerHTML = `Low stock: ${low.map(i => `<strong>${i.name}</strong> (${i.quantity})`).join(', ')}`;
   }
 
@@ -574,7 +694,7 @@
     }
     orders.sort((a, b) => new Date(a.pickupDate || a.date) - new Date(b.pickupDate || b.date));
     if (!orders.length) {
-      tbody.innerHTML = '<tr><td colspan="9" class="empty">No orders match filters.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="11" class="empty">No orders match filters.</td></tr>';
       return;
     }
     tbody.innerHTML = orders.map(order => {
@@ -585,19 +705,29 @@
       const fulfillment = order.fulfillmentType || 'Pickup';
       const pickup = order.pickupDate ? shortDate.format(new Date(order.pickupDate)) : '—';
       const channelLabel = order.channel || 'Direct';
+      const slotLabel = getDeliverySlotLabel(order.deliverySlotId);
+      const orderTypeLabel = order.orderType === 'custom' ? 'Custom Event' : 'Drop';
+      const collectedAmount = (Number(order.deposit) || 0) + (Number(order.paidAmount) || 0);
+      const paymentLabel = order.paymentStatus === 'Paid'
+        ? `${order.paymentMethod || 'Paid'} (${formatCurrency(collectedAmount)})`
+        : `Due ${formatCurrency(computeOrderBalance(order))}`;
       return `
         <tr>
           <td>${order.date || '—'}</td>
           <td>${order.customerName || 'Walk-in'}</td>
+          <td><span class="badge ${order.orderType === 'custom' ? 'warn' : ''}">${orderTypeLabel}</span></td>
           <td>${itemDetails}</td>
           <td>${totalQty}</td>
           <td>${totalPrice}</td>
           <td>${order.status}</td>
           <td>${fulfillment}</td>
-          <td>${pickup}<br><span class="badge">${channelLabel}</span></td>
+          <td>${pickup}<br><span class="badge">${slotLabel}</span><br><span class="badge">${channelLabel}</span></td>
+          <td><span class="badge ${order.paymentStatus === 'Paid' ? 'success' : 'warn'}">${paymentLabel}</span></td>
           <td>
             <button class="link-btn" data-action="edit-order" data-id="${order.id}">Edit</button>
             <button class="link-btn" data-action="advance-order" data-id="${order.id}">Advance</button>
+            ${order.status !== 'Cancelled' && order.paymentStatus !== 'Paid' ? `<button class="link-btn" data-action="pay-order" data-id="${order.id}">Mark Paid</button>` : ''}
+            ${order.status !== 'Cancelled' && order.status !== 'Fulfilled' ? `<button class="link-btn" data-action="cancel-order" data-id="${order.id}">Cancel</button>` : ''}
             <button class="link-btn danger" data-action="delete-order" data-id="${order.id}">Delete</button>
           </td>
         </tr>
@@ -1024,8 +1154,13 @@
     getById('order-channel').value = order ? order.channel || 'Direct' : 'Direct';
     getById('order-fulfillment').innerHTML = FULFILLMENT_OPTIONS.map(opt => `<option value="${opt}">${opt}</option>`).join('');
     getById('order-fulfillment').value = order ? order.fulfillmentType || 'Pickup' : 'Pickup';
+    getById('order-type').value = order ? (order.orderType || 'drop') : 'drop';
     getById('order-pickup-date').value = order ? order.pickupDate || '' : '';
-    populateSlots('order-slot', order ? order.deliverySlotId : '');
+    refreshOrderSlotOptions(order ? order.deliverySlotId : '');
+    getById('order-payment-method').innerHTML = ['<option value="">Unpaid</option>'].concat(
+      PAYMENT_METHODS.map(method => `<option value="${method}">${method}</option>`)
+    ).join('');
+    getById('order-payment-method').value = order ? (order.paymentMethod || '') : '';
     getById('order-deposit').value = order ? order.deposit || '' : '';
     getById('order-notes').value = order ? order.notes || '' : '';
     const itemsContainer = getById('order-items-container');
@@ -1047,6 +1182,8 @@
         customerNameInput.value = customName;
       }
     }
+    updateOrderPolicyHint();
+    updateOrderCapacityHint();
     showModal('order-modal');
   }
 
@@ -1068,9 +1205,15 @@
     remove.type = 'button';
     remove.className = 'secondary';
     remove.textContent = 'Remove';
-    remove.addEventListener('click', () => row.remove());
+    remove.addEventListener('click', () => {
+      row.remove();
+      updateOrderCapacityHint();
+    });
+    select.addEventListener('change', () => updateOrderCapacityHint());
+    input.addEventListener('input', () => updateOrderCapacityHint());
     row.append(select, input, remove);
     container.appendChild(row);
+    updateOrderCapacityHint();
   }
 
   async function handleOrderSubmit(event) {
@@ -1092,15 +1235,82 @@
       showToast('Add at least one item');
       return;
     }
+
+    const pickupDate = getById('order-pickup-date').value;
+    const orderType = getById('order-type').value || 'drop';
+    const customNotice = validateCustomNotice(orderType, pickupDate);
+    if (!customNotice.ok) {
+      showToast(customNotice.message);
+      return;
+    }
+
+    const dropCapacity = validateDropOrderCapacity({
+      orderType,
+      pickupDate,
+      items,
+      editingOrderId: state.editingOrderId
+    });
+    if (!dropCapacity.ok) {
+      showToast(dropCapacity.message);
+      updateOrderCapacityHint(dropCapacity.details || []);
+      return;
+    }
+
+    ensureDeliverySlotsForDate(pickupDate);
+    const slotValidation = validateOrderSlotSelection({
+      slotId: getById('order-slot').value,
+      pickupDate,
+      editingOrderId: state.editingOrderId
+    });
+    if (!slotValidation.ok) {
+      showToast(slotValidation.message);
+      refreshOrderSlotOptions(slotValidation.slotId || '');
+      return;
+    }
+    if (orderType === 'drop' && !slotValidation.slotId) {
+      showToast('Drop orders require a pickup slot so capacity stays controlled.');
+      return;
+    }
+
+    const existingOrder = state.editingOrderId
+      ? window.data.orders.find(order => order.id === orderId)
+      : null;
+    const paymentMethod = getById('order-payment-method').value || '';
+    const totalAmount = items.reduce((sum, item) => {
+      const recipe = window.data.menuItems.find(menu => menu.id === item.itemId);
+      return sum + ((Number(recipe?.price) || 0) * (Number(item.qty) || 0));
+    }, 0);
+    const deposit = Number(getById('order-deposit').value) || 0;
+    const existingPaidAmount = Number(existingOrder?.paidAmount) || 0;
+    let paidAmount = existingPaidAmount;
+    if (!existingOrder && paymentMethod) {
+      paidAmount = Math.max(totalAmount - deposit, 0);
+    }
+    if (existingOrder && paymentMethod && existingOrder.paymentStatus !== 'Paid') {
+      paidAmount = Math.max(totalAmount - deposit, 0);
+    }
+    const paymentStatus = paymentMethod ? 'Paid' : 'Unpaid';
+    if (paymentStatus === 'Unpaid') {
+      paidAmount = 0;
+    }
+    const paidAt = paymentStatus === 'Paid'
+      ? (existingOrder?.paidAt || new Date().toISOString())
+      : null;
+
     const orderPayload = {
       id: orderId,
       customerId,
       customerName,
+      orderType,
       channel: getById('order-channel').value,
       fulfillmentType: getById('order-fulfillment').value,
-      pickupDate: getById('order-pickup-date').value,
-      deliverySlotId: getById('order-slot').value,
-      deposit: Number(getById('order-deposit').value) || 0,
+      pickupDate,
+      deliverySlotId: slotValidation.slotId,
+      deposit,
+      paymentMethod,
+      paymentStatus,
+      paidAmount,
+      paidAt,
       notes: getById('order-notes').value,
       date: new Date().toISOString().slice(0, 10),
       status: state.editingOrderId ? (window.data.orders.find(o => o.id === orderId)?.status || 'Pending') : 'Pending',
@@ -1113,10 +1323,285 @@
     } else {
       window.data.orders.push(orderPayload);
     }
+    syncDeliverySlotCommitments();
     hideModal('order-modal');
     state.editingOrderId = null;
     await persistAndRefresh(['orders', 'production', 'dashboard', 'calendar']);
     showToast('Order saved');
+  }
+
+  function validateOrderSlotSelection({ slotId, pickupDate, editingOrderId }) {
+    const normalizedSlotId = (slotId || '').trim();
+    if (!normalizedSlotId) {
+      return { ok: true, slotId: null };
+    }
+    if (!pickupDate) {
+      return { ok: false, slotId: null, message: 'Choose a pickup date before selecting a slot.' };
+    }
+    const slot = findDeliverySlot(normalizedSlotId);
+    if (!slot) {
+      return { ok: false, slotId: null, message: 'Selected pickup slot no longer exists. Please choose again.' };
+    }
+    if (slot.date !== pickupDate) {
+      return { ok: false, slotId: null, message: 'Pickup slot must match the selected pickup date.' };
+    }
+    const committed = getCommittedOrderCountForSlot(normalizedSlotId, editingOrderId);
+    if (committed >= (Number(slot.capacity) || 0)) {
+      return { ok: false, slotId: normalizedSlotId, message: 'That pickup slot is full. Choose another window.' };
+    }
+    return { ok: true, slotId: normalizedSlotId };
+  }
+
+  function validateCustomNotice(orderType, pickupDate) {
+    if (orderType !== 'custom') return { ok: true };
+    const target = startOfDay(pickupDate);
+    if (!target) {
+      return { ok: false, message: 'Custom event orders need a pickup date.' };
+    }
+    const minimum = startOfDay(addDays(new Date(), 2));
+    if (target < minimum) {
+      return { ok: false, message: 'Custom event orders require at least 48 hours notice.' };
+    }
+    return { ok: true };
+  }
+
+  function validateDropOrderCapacity({ orderType, pickupDate, items = [], editingOrderId = null }) {
+    if (orderType !== 'drop') return { ok: true };
+    if (!pickupDate) {
+      return { ok: false, message: 'Choose a pickup date to match your drop capacity.' };
+    }
+
+    const requestedByRecipe = new Map();
+    items.forEach(item => {
+      const current = requestedByRecipe.get(item.itemId) || 0;
+      requestedByRecipe.set(item.itemId, current + (Number(item.qty) || 0));
+    });
+
+    const details = [];
+    let hasShortage = false;
+    requestedByRecipe.forEach((requested, recipeId) => {
+      const planned = (window.data.productionSchedule || []).reduce((sum, batch) => {
+        if (batch.recipeId !== recipeId) return sum;
+        if (batch.scheduleDate !== pickupDate) return sum;
+        if (batch.status === 'complete' || batch.status === 'in-progress' || batch.status === 'planned') {
+          return sum + (Number(batch.quantity) || 0);
+        }
+        return sum;
+      }, 0);
+
+      const alreadyBooked = (window.data.orders || []).reduce((sum, order) => {
+        if (order.id === editingOrderId) return sum;
+        if (order.status === 'Cancelled') return sum;
+        if ((order.orderType || 'drop') !== 'drop') return sum;
+        if ((order.pickupDate || '') !== pickupDate) return sum;
+        const qtyForRecipe = getOrderItems(order)
+          .filter(item => item.itemId === recipeId)
+          .reduce((qtySum, item) => qtySum + (Number(item.qty) || 0), 0);
+        return sum + qtyForRecipe;
+      }, 0);
+
+      const remaining = planned - alreadyBooked;
+      const shortage = requested > remaining;
+      if (shortage) hasShortage = true;
+      details.push({
+        recipeId,
+        recipeName: menuItemName(recipeId),
+        requested,
+        planned,
+        alreadyBooked,
+        remaining,
+        shortage
+      });
+    });
+
+    if (hasShortage) {
+      const top = details.filter(detail => detail.shortage).slice(0, 2).map(detail => {
+        const missing = Math.max(detail.requested - detail.remaining, 0);
+        return `${detail.recipeName} (need ${missing} more)`;
+      }).join(', ');
+      return {
+        ok: false,
+        details,
+        message: `Drop quantity exceeded for ${pickupDate}. ${top}. Add batches or reduce order quantity.`
+      };
+    }
+
+    return { ok: true, details };
+  }
+
+  function updateOrderPolicyHint() {
+    const hint = getById('order-policy-hint');
+    if (!hint) return;
+    const orderType = getById('order-type')?.value || 'drop';
+    const pickupDate = getById('order-pickup-date')?.value || '';
+    if (orderType === 'custom') {
+      const validation = validateCustomNotice(orderType, pickupDate);
+      hint.classList.remove('success');
+      if (!validation.ok) {
+        hint.classList.add('warn');
+        hint.textContent = 'Custom event policy: minimum 48-hour notice is required.';
+      } else {
+        hint.classList.remove('warn');
+        hint.classList.add('success');
+        hint.textContent = 'Custom event policy met: notice window is valid.';
+      }
+      return;
+    }
+    hint.classList.remove('warn');
+    hint.classList.add('success');
+    hint.textContent = 'Drop order: quantity is constrained by your scheduled batch capacity for that pickup day.';
+  }
+
+  function updateOrderCapacityHint(precomputedDetails = null) {
+    const stat = getById('order-capacity-hint');
+    if (!stat) return;
+    const orderType = getById('order-type')?.value || 'drop';
+    const pickupDate = getById('order-pickup-date')?.value || '';
+    const items = Array.from(document.querySelectorAll('#order-items-container .order-item-row')).map(row => {
+      const select = row.querySelector('select');
+      const qty = row.querySelector('input');
+      return { itemId: select?.value || '', qty: Number(qty?.value) || 0 };
+    }).filter(item => item.itemId && item.qty > 0);
+
+    if (orderType !== 'drop') {
+      stat.textContent = 'Custom orders are not limited by drop quantities, but still consume inventory when produced.';
+      return;
+    }
+    if (!pickupDate) {
+      stat.textContent = 'Select a pickup date to see remaining drop capacity by recipe.';
+      return;
+    }
+    if (!items.length) {
+      stat.textContent = 'Add order items to preview remaining drop capacity.';
+      return;
+    }
+
+    const result = precomputedDetails ? { details: precomputedDetails } : validateDropOrderCapacity({
+      orderType,
+      pickupDate,
+      items,
+      editingOrderId: state.editingOrderId
+    });
+    const details = result.details || [];
+    if (!details.length) {
+      stat.textContent = 'No matching capacity data yet. Schedule production batches for this date.';
+      return;
+    }
+
+    const summary = details.map(detail => {
+      const available = Math.max(detail.remaining, 0);
+      return `${detail.recipeName}: ${available} left`;
+    }).join(' | ');
+    stat.textContent = `Drop capacity (${pickupDate}): ${summary}`;
+  }
+
+  function openPickupPaymentModal(order) {
+    if (!order) return;
+    state.paymentOrderId = order.id;
+    getById('payment-order-id').value = order.id;
+    getById('payment-method').value = order.paymentMethod && PAYMENT_METHODS.includes(order.paymentMethod)
+      ? order.paymentMethod
+      : 'Cash';
+    getById('payment-amount-preview').textContent = `Balance due: ${formatCurrency(computeOrderBalance(order))}`;
+    showModal('payment-modal');
+  }
+
+  async function handlePickupPaymentSubmit(event) {
+    event.preventDefault();
+    const orderId = getById('payment-order-id').value || state.paymentOrderId;
+    const order = (window.data.orders || []).find(entry => entry.id === orderId);
+    if (!order) {
+      showToast('Order not found for payment.');
+      return;
+    }
+
+    const method = getById('payment-method').value;
+    order.paymentMethod = method;
+    order.paymentStatus = 'Paid';
+    order.paidAt = new Date().toISOString();
+    order.paidAmount = Math.max(computeOrderTotal(order) - (Number(order.deposit) || 0), 0);
+
+    state.paymentOrderId = null;
+    hideModal('payment-modal');
+    await persistAndRefresh(['orders', 'dashboard']);
+    showToast(`Payment recorded via ${method}.`);
+  }
+
+  function produceOrder(order) {
+    if (!order) return { success: false, message: 'Order not found.' };
+    if (order.produced) return { success: true };
+
+    const requirements = new Map();
+    const shortages = [];
+
+    getOrderItems(order).forEach(item => {
+      const recipe = window.data.menuItems.find(menu => menu.id === item.itemId);
+      if (!recipe || !Array.isArray(recipe.ingredientsRequired)) return;
+      recipe.ingredientsRequired.forEach(requirement => {
+        const qty = (Number(requirement.quantity) || 0) * (Number(item.qty) || 0);
+        if (!qty) return;
+        const current = requirements.get(requirement.ingredientId) || 0;
+        requirements.set(requirement.ingredientId, current + qty);
+      });
+    });
+
+    requirements.forEach((requiredQty, ingredientId) => {
+      const ingredient = window.data.ingredients.find(entry => entry.id === ingredientId);
+      const available = ingredient ? Number(ingredient.quantity) || 0 : 0;
+      if (!ingredient || available < requiredQty) {
+        const missing = Math.max(requiredQty - available, 0);
+        const label = ingredient ? ingredient.name : 'Unknown ingredient';
+        shortages.push(`${label} (missing ${missing.toFixed(2)})`);
+      }
+    });
+
+    if (shortages.length) {
+      return {
+        success: false,
+        message: `Cannot mark as produced. Low stock: ${shortages.slice(0, 3).join(', ')}${shortages.length > 3 ? ', ...' : ''}`
+      };
+    }
+
+    const usageDate = new Date().toISOString();
+    requirements.forEach((requiredQty, ingredientId) => {
+      const ingredient = window.data.ingredients.find(entry => entry.id === ingredientId);
+      if (!ingredient) return;
+      ingredient.quantity = Math.max(0, (Number(ingredient.quantity) || 0) - requiredQty);
+      window.data.inventoryMovements.push({
+        id: createRuntimeId('move'),
+        ingredientId,
+        quantity: -requiredQty,
+        type: 'usage',
+        note: `Order production (${order.id})`,
+        date: usageDate
+      });
+    });
+
+    getOrderItems(order).forEach(item => {
+      const recipe = window.data.menuItems.find(menu => menu.id === item.itemId);
+      if (!recipe) return;
+      const qty = Number(item.qty) || 0;
+      if (!qty) return;
+      const ingredientsUsed = (recipe.ingredientsRequired || []).map(requirement => {
+        const ingredient = window.data.ingredients.find(entry => entry.id === requirement.ingredientId);
+        return {
+          name: ingredient ? ingredient.name : requirement.ingredientId,
+          amount: (Number(requirement.quantity) || 0) * qty
+        };
+      });
+      window.data.productionHistory.push({
+        id: createRuntimeId('history'),
+        recipeName: recipe.name,
+        quantity: qty,
+        ingredientsUsed,
+        totalCost: (Number(recipe.cost) || 0) * qty,
+        totalRevenue: (Number(recipe.price) || 0) * qty,
+        date: order.pickupDate || usageDate.slice(0, 10)
+      });
+    });
+
+    order.produced = true;
+    return { success: true };
   }
 
   function openTaskModal(task = null) {
@@ -1434,9 +1919,9 @@
     const toast = getById('toast');
     if (!toast) return;
     toast.textContent = message;
-    toast.classList.add('visible');
+    toast.classList.add('show');
     clearTimeout(toastTimeout);
-    toastTimeout = setTimeout(() => toast.classList.remove('visible'), 2200);
+    toastTimeout = setTimeout(() => toast.classList.remove('show'), 2200);
   }
 
   function toggleLoading(show) {
@@ -1498,6 +1983,12 @@
     return item ? item.name : 'Menu Item';
   }
 
+  function getDeliverySlotLabel(slotId) {
+    if (!slotId) return 'No slot';
+    const slot = findDeliverySlot(slotId);
+    return slot ? slot.window : 'No slot';
+  }
+
   function getOrderItems(order) {
     return Array.isArray(order?.items) ? order.items : [];
   }
@@ -1507,6 +1998,13 @@
       const recipe = window.data.menuItems.find(m => m.id === item.itemId);
       return sum + ((recipe?.price || 0) * (item.qty || 0));
     }, 0);
+  }
+
+  function computeOrderBalance(order) {
+    const total = computeOrderTotal(order);
+    const deposit = Number(order?.deposit) || 0;
+    const paidAmount = Number(order?.paidAmount) || 0;
+    return Math.max(total - deposit - paidAmount, 0);
   }
 
   function formatCurrency(value) {
@@ -1602,13 +2100,111 @@
   }
 
   function populateSlots(id, selected) {
-    const select = getById(id);
+    if (id !== 'order-slot') return;
+    refreshOrderSlotOptions(selected);
+  }
+
+  function findDeliverySlot(slotId) {
+    if (!slotId) return null;
+    return (window.data.deliverySlots || []).find(slot => slot.id === slotId) || null;
+  }
+
+  function getCommittedOrderCountForSlot(slotId, excludedOrderId = null) {
+    return (window.data.orders || []).filter(order => {
+      return order.deliverySlotId === slotId
+        && order.status !== 'Cancelled'
+        && order.id !== excludedOrderId;
+    }).length;
+  }
+
+  function syncDeliverySlotCommitments() {
+    if (!Array.isArray(window.data.deliverySlots)) {
+      window.data.deliverySlots = [];
+    }
+
+    window.data.deliverySlots.forEach(slot => {
+      slot.committedOrders = [];
+      if (!Number(slot.capacity)) {
+        slot.capacity = slot.window === '16:00-18:00' ? 6 : 4;
+      }
+    });
+
+    (window.data.orders || []).forEach(order => {
+      if (!order || !order.deliverySlotId || order.status === 'Cancelled') return;
+      const slot = findDeliverySlot(order.deliverySlotId);
+      if (!slot) return;
+      if (slot.date && order.pickupDate && slot.date !== order.pickupDate) return;
+      if (!Array.isArray(slot.committedOrders)) slot.committedOrders = [];
+      if (!slot.committedOrders.includes(order.id)) {
+        slot.committedOrders.push(order.id);
+      }
+    });
+  }
+
+  function ensureDeliverySlotsForDate(dateString) {
+    if (!dateString) return;
+    if (!Array.isArray(window.data.deliverySlots)) {
+      window.data.deliverySlots = [];
+    }
+    const hasSlots = window.data.deliverySlots.some(slot => slot.date === dateString);
+    if (hasSlots) return;
+
+    ['08:00-10:00', '10:00-12:00', '16:00-18:00'].forEach(windowLabel => {
+      window.data.deliverySlots.push({
+        id: createRuntimeId('slot'),
+        date: dateString,
+        window: windowLabel,
+        capacity: windowLabel === '16:00-18:00' ? 6 : 4,
+        committedOrders: []
+      });
+    });
+  }
+
+  function refreshOrderSlotOptions(preferredSlotId = '') {
+    const select = getById('order-slot');
     if (!select) return;
-    select.innerHTML = window.data.deliverySlots.map(slot => {
-      const label = `${slot.date} • ${slot.window}`;
-      return `<option value="${slot.id}">${label}</option>`;
+    const pickupDate = getById('order-pickup-date')?.value || '';
+    if (!pickupDate) {
+      select.innerHTML = '<option value="">Select pickup date first</option>';
+      select.value = '';
+      return;
+    }
+
+    ensureDeliverySlotsForDate(pickupDate);
+    syncDeliverySlotCommitments();
+
+    const slots = (window.data.deliverySlots || [])
+      .filter(slot => slot.date === pickupDate)
+      .sort((a, b) => a.window.localeCompare(b.window));
+
+    if (!slots.length) {
+      select.innerHTML = '<option value="">No slots available for this day</option>';
+      select.value = '';
+      return;
+    }
+
+    select.innerHTML = slots.map(slot => {
+      const capacity = Number(slot.capacity) || 0;
+      const committed = getCommittedOrderCountForSlot(slot.id, state.editingOrderId);
+      const remaining = Math.max(capacity - committed, 0);
+      const isPreferred = slot.id === preferredSlotId;
+      const isFull = remaining <= 0 && !isPreferred;
+      const fullSuffix = isFull ? ' - full' : '';
+      return `<option value="${slot.id}" ${isFull ? 'disabled' : ''}>${slot.window} (${remaining} left)${fullSuffix}</option>`;
     }).join('');
-    select.value = selected || (window.data.deliverySlots[0]?.id || '');
+
+    if (preferredSlotId) {
+      const preferredOption = Array.from(select.options).find(option => {
+        return option.value === preferredSlotId && !option.disabled;
+      });
+      if (preferredOption) {
+        select.value = preferredSlotId;
+        return;
+      }
+    }
+
+    const firstAvailable = Array.from(select.options).find(option => !option.disabled && option.value);
+    select.value = firstAvailable ? firstAvailable.value : '';
   }
 
   function populateOrderMultiSelect(id, selected = []) {
@@ -1670,6 +2266,7 @@
       try {
         const parsed = JSON.parse(loadEvent.target.result);
         window.data = window.normalizeSnapshot(parsed);
+        syncDeliverySlotCommitments();
         await saveData();
         location.reload();
       } catch (error) {
@@ -1696,12 +2293,42 @@
   }
 
   function advanceOrderStatus(order) {
+    if (!order) return;
+    if (order.status === 'Cancelled') {
+      showToast('Cancelled orders cannot be advanced.');
+      return;
+    }
+    if (order.status === 'Fulfilled') {
+      showToast('Order is already fulfilled.');
+      return;
+    }
+
+    if (order.status === 'Pending') {
+      const result = produceOrder(order);
+      if (!result.success) {
+        showToast(result.message);
+        return;
+      }
+      order.status = 'Produced';
+      syncDeliverySlotCommitments();
+      persistAndRefresh(['orders', 'inventory', 'production', 'dashboard', 'calendar']);
+      showToast('Order moved to Produced. Inventory was updated.');
+      return;
+    }
+
+    if (order.status === 'Produced') {
+      order.status = 'Fulfilled';
+      order.produced = true;
+      syncDeliverySlotCommitments();
+      persistAndRefresh(['orders', 'production', 'dashboard', 'calendar']);
+      showToast('Order fulfilled.');
+      return;
+    }
+
     const currentIndex = ORDER_STATUSES.indexOf(order.status);
     const nextStatus = ORDER_STATUSES[Math.min(currentIndex + 1, ORDER_STATUSES.length - 1)];
     order.status = nextStatus;
-    if (nextStatus === 'Fulfilled') {
-      order.produced = true;
-    }
+    syncDeliverySlotCommitments();
     persistAndRefresh(['orders', 'production', 'dashboard', 'calendar']);
   }
 

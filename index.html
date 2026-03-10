@@ -55,6 +55,14 @@
 
       <section id="dashboard-view" class="view active">
         <div class="metric-grid" id="metric-grid"></div>
+        <div id="onboarding-panel" class="panel onboarding-panel">
+          <div class="panel-header">
+            <h3>Launch Checklist</h3>
+            <button id="dismiss-onboarding" class="link-btn">Hide checklist</button>
+          </div>
+          <p id="onboarding-progress" class="onboarding-progress"></p>
+          <ul id="onboarding-list" class="onboarding-list"></ul>
+        </div>
         <div class="grid two-column dashboard-flex">
           <div class="panel performance-panel">
             <div class="panel-header">
@@ -202,12 +210,14 @@
             <tr>
               <th>Date</th>
               <th>Customer</th>
+              <th>Type</th>
               <th>Items</th>
               <th>Qty</th>
               <th>Total</th>
               <th>Status</th>
               <th>Fulfillment</th>
               <th>Pickup Slot</th>
+              <th>Payment</th>
               <th></th>
             </tr>
           </thead>
@@ -422,12 +432,29 @@
         <input type="hidden" id="order-id" />
         <label>Customer<select id="order-customer-select"></select></label>
         <label>Custom Name<input type="text" id="order-customer-name" placeholder="Walk-in or new" /></label>
+        <label>Order Type
+          <select id="order-type">
+            <option value="drop">Drop (limited pickup menu)</option>
+            <option value="custom">Custom Event / Off-hours</option>
+          </select>
+        </label>
         <label>Channel<select id="order-channel"></select></label>
         <label>Fulfillment<select id="order-fulfillment"></select></label>
         <label>Pickup Date<input type="date" id="order-pickup-date" required /></label>
         <label>Pickup Slot<select id="order-slot"></select></label>
+        <label>Payment Method
+          <select id="order-payment-method">
+            <option value="">Unpaid</option>
+            <option value="Cash">Cash</option>
+            <option value="Venmo">Venmo</option>
+            <option value="PayPal">PayPal</option>
+            <option value="Zelle">Zelle</option>
+          </select>
+        </label>
         <label>Deposit ($)<input type="number" id="order-deposit" step="0.01" /></label>
         <label>Notes<textarea id="order-notes"></textarea></label>
+        <div id="order-policy-hint" class="notice-block"></div>
+        <div id="order-capacity-hint" class="stat"></div>
         <div id="order-items-container" class="stack-list"></div>
         <button type="button" id="add-order-item" class="secondary">+ Add Item</button>
         <div class="modal-actions">
@@ -459,6 +486,28 @@
         <div class="modal-actions">
           <button type="submit">Save Task</button>
           <button type="button" class="secondary" data-close="task-modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="payment-modal" class="modal" hidden>
+    <div class="modal-content">
+      <h3>Record Pickup Payment</h3>
+      <form id="payment-modal-form" class="form-grid">
+        <input type="hidden" id="payment-order-id" />
+        <label>Method
+          <select id="payment-method" required>
+            <option value="Cash">Cash</option>
+            <option value="Venmo">Venmo</option>
+            <option value="PayPal">PayPal</option>
+            <option value="Zelle">Zelle</option>
+          </select>
+        </label>
+        <div id="payment-amount-preview" class="stat"></div>
+        <div class="modal-actions">
+          <button type="submit">Mark Paid</button>
+          <button type="button" class="secondary" data-close="payment-modal">Cancel</button>
         </div>
       </form>
     </div>

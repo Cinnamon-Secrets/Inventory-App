@@ -433,6 +433,79 @@ button:hover {
   font-size: 1.8rem;
 }
 
+.metric-value {
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.metric-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--slate);
+}
+
+.metric-sub {
+  font-size: 0.84rem;
+  color: rgba(28, 27, 31, 0.62);
+}
+
+.onboarding-panel {
+  gap: 12px;
+}
+
+.onboarding-progress {
+  color: var(--slate);
+  font-size: 0.92rem;
+}
+
+.onboarding-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.onboarding-list li {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(248, 180, 217, 0.12);
+  border: 1px solid rgba(240, 69, 125, 0.14);
+}
+
+.onboarding-list li span {
+  display: inline-flex;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  color: #9b4f00;
+  background: rgba(255, 170, 46, 0.28);
+}
+
+.onboarding-list li.done {
+  background: rgba(36, 191, 129, 0.1);
+  border-color: rgba(15, 122, 87, 0.2);
+}
+
+.onboarding-list li.done span {
+  color: #0f7a57;
+  background: rgba(36, 191, 129, 0.2);
+}
+
+.onboarding-list li p {
+  font-size: 0.92rem;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -496,6 +569,53 @@ textarea {
   gap: 10px;
 }
 
+.list-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.list-date {
+  min-width: 72px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--slate);
+}
+
+.list-label {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.list-detail {
+  font-size: 0.86rem;
+  color: var(--slate);
+}
+
+.empty-state {
+  border: 1px dashed rgba(28, 27, 31, 0.2);
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 0.9rem;
+  color: var(--slate);
+  background: rgba(253, 245, 251, 0.7);
+}
+
+.cell-primary {
+  font-weight: 600;
+}
+
+.cell-sub {
+  font-size: 0.83rem;
+  color: var(--slate);
+  margin-top: 4px;
+}
+
 .list-card {
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -531,6 +651,32 @@ textarea {
   gap: 12px;
 }
 
+.timeline-row {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 10px 12px;
+  border-left: 3px solid var(--rose-strong);
+  background: rgba(253, 245, 251, 0.62);
+  border-radius: 8px;
+}
+
+.timeline-date {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--slate);
+}
+
+.timeline-label {
+  font-weight: 600;
+}
+
+.timeline-detail {
+  font-size: 0.85rem;
+  color: var(--slate);
+}
+
 .timeline-item {
   border-left: 3px solid var(--rose-strong);
   padding-left: 12px;
@@ -561,6 +707,73 @@ textarea {
   padding: 12px;
   margin-bottom: 10px;
   box-shadow: var(--shadow);
+}
+
+.kanban-title {
+  text-transform: capitalize;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--slate);
+}
+
+.card-label {
+  font-weight: 700;
+}
+
+.card-detail {
+  font-size: 0.86rem;
+  color: var(--slate);
+  margin-top: 4px;
+}
+
+.card-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(179, 136, 235, 0.12);
+  color: #4f2f8f;
+  font-weight: 600;
+}
+
+.notice-block {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(179, 136, 235, 0.12);
+  color: #4f2f8f;
+  border: 1px solid rgba(79, 47, 143, 0.2);
+  font-size: 0.9rem;
+}
+
+.notice-block.warn {
+  background: rgba(255, 170, 46, 0.15);
+  color: #9b4f00;
+  border-color: rgba(155, 79, 0, 0.28);
+}
+
+.notice-block.success {
+  background: rgba(36, 191, 129, 0.12);
+  color: #0f7a57;
+  border-color: rgba(15, 122, 87, 0.24);
+}
+
+.pill {
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: rgba(240, 69, 125, 0.14);
+  color: var(--rose-dark);
+  box-shadow: none;
+}
+
+tr.active {
+  background: rgba(248, 180, 217, 0.16);
 }
 
 .modal {
